@@ -38,6 +38,10 @@ class Parser
 
     public static function parseFile(string $filePath): self
     {
+        if (!is_readable($filePath)) {
+            throw new RuntimeException("File not found or not readable: {$filePath}");
+        }
+
         $content = file_get_contents($filePath);
         if (false === $content) {
             throw new RuntimeException("Failed to read file: {$filePath}");

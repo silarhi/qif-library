@@ -14,6 +14,8 @@ declare(strict_types=1);
 
 namespace MimoGraphix\QIF;
 
+use function dirname;
+
 use RuntimeException;
 use Stringable;
 
@@ -55,6 +57,10 @@ class Writer implements Stringable
 
     public function saveToFile(string $filePath): void
     {
+        if (!is_writable(dirname($filePath))) {
+            throw new RuntimeException('Directory not writable: ' . dirname($filePath));
+        }
+
         $file = fopen($filePath, 'w');
         if (false === $file) {
             throw new RuntimeException("Unable to open file: {$filePath}");
