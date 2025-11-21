@@ -14,7 +14,7 @@ declare(strict_types=1);
 
 namespace MimoGraphix\QIF;
 
-use Carbon\Carbon;
+use DateTimeImmutable;
 use MimoGraphix\QIF\Enums\DetailItems;
 use MimoGraphix\QIF\Enums\Status;
 use MimoGraphix\QIF\Enums\Types;
@@ -84,7 +84,23 @@ class Parser
                     $transactionRaw = '!Type:' . $lastTypeString;
                     break;
                 case DetailItems::D->value:
-                    $transaction->setDate(Carbon::parse(str_replace("'", '.', $line)));
+                    $dateString = str_replace("'", '/', $line);
+                    // Normalize whitespace (handle Y2K format like "1/ 1/ 0")
+                    $normalizedDate = str_replace(' ', '0', $dateString);
+
+                    $date = null;
+                    $formats = ['Y-m-d', 'd/m/Y', 'y-m-d', 'd/m/y'];
+
+                    foreach ($formats as $format) {
+                        $parsedDate = DateTimeImmutable::createFromFormat($format, $normalizedDate);
+                        if (false !== $parsedDate) {
+                            $date = $parsedDate;
+                        }
+                    }
+
+                    if ($date instanceof DateTimeImmutable) {
+                        $transaction->setDate($date);
+                    }
                     break;
                 case DetailItems::T->value:
                 case DetailItems::U->value:

@@ -31,7 +31,7 @@ $qif = new MimoGraphix\QIF\Writer();
 // Create a new transaction
 $transaction = new Transaction( Enums\Types::CASH );
 
-$transaction->setDate( new Carbon( '2019-12-31' ) )
+$transaction->setDate( new DateTimeImmutable( '2019-12-31' ) )
 	->setDescription( 'INV666: ' )
 	->setAmount( 18.99 )
 	->setCategory( 'Sales' )

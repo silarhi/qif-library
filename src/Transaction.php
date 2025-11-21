@@ -16,8 +16,7 @@ namespace MimoGraphix\QIF;
 
 use function array_key_exists;
 
-use Carbon\Carbon;
-use DateTime;
+use DateTimeImmutable;
 use Exception;
 
 use function is_scalar;
@@ -37,7 +36,7 @@ use Stringable;
  */
 class Transaction implements Stringable
 {
-    private ?Carbon $date = null;
+    private ?DateTimeImmutable $date = null;
 
     private ?string $description = null;
 
@@ -66,7 +65,7 @@ class Transaction implements Stringable
         $this->status = Status::NOT_CLEARED;
     }
 
-    public function setDate(Carbon $date): self
+    public function setDate(DateTimeImmutable $date): self
     {
         $this->date = $date;
 
@@ -164,7 +163,7 @@ class Transaction implements Stringable
 
     private function renderDateLineIfNotNull(): string|false
     {
-        if ($this->date instanceof DateTime) {
+        if ($this->date instanceof DateTimeImmutable) {
             return $this->renderIfNotNull(DetailItems::D->value, $this->date->format('d/m/Y'));
         }
 
@@ -215,7 +214,7 @@ class Transaction implements Stringable
         return $this->type;
     }
 
-    public function getDate(): ?Carbon
+    public function getDate(): ?DateTimeImmutable
     {
         return $this->date;
     }
