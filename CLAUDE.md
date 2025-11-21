@@ -28,10 +28,26 @@ This is a PHP library for parsing and writing QIF (Quicken Interchange Format) f
 
 ## Development Commands
 
+### Testing
+
+```bash
+# Run all tests
+vendor/bin/phpunit
+
+# Run tests with detailed output
+vendor/bin/phpunit --testdox
+
+# Run specific test file
+vendor/bin/phpunit tests/Unit/ParserTest.php
+
+# Run tests with coverage (requires Xdebug)
+vendor/bin/phpunit --coverage-html var/coverage
+```
+
 ### Code Quality Tools
 
 ```bash
-# Run PHPStan (level 9)
+# Run PHPStan (level 9) - includes src/ and tests/
 vendor/bin/phpstan analyze
 
 # Fix code style with PHP-CS-Fixer
@@ -86,6 +102,22 @@ Transaction objects convert to QIF format via `__toString()`. Private helper met
 - Split operations throw `Exception` for duplicate split names
 - All error messages include context (e.g., file paths)
 
+## Testing
+
+The project uses PHPUnit 11 with comprehensive test coverage:
+
+- **Unit tests**: Located in `tests/Unit/`
+- **Test fixtures**: Sample QIF files in `tests/fixtures/`
+- **Coverage**: All core classes (Parser, Writer, Transaction) and enums have full test coverage
+- **PHPUnit config**: `phpunit.xml` with strict error handling enabled
+
+### Test Structure
+
+- `TransactionTest`: Tests transaction creation, setters/getters, fluent interface, splits, and string output
+- `ParserTest`: Tests QIF parsing, multiple formats, date handling, status variations, and error cases
+- `WriterTest`: Tests transaction collection, output generation, and file writing
+- `Enums/*Test`: Tests enum values and tryFrom() functionality
+
 ## Common Workflows
 
 ### Adding New QIF Fields
@@ -94,7 +126,8 @@ Transaction objects convert to QIF format via `__toString()`. Private helper met
 2. Update `Parser::parse()` switch statement to handle the field
 3. Add property and getter/setter to `Transaction` if needed
 4. Update `Transaction::__toString()` or render methods to output the field
-5. Run PHPStan and PHP-CS-Fixer
+5. Write tests in `ParserTest` and `TransactionTest` for the new field
+6. Run PHPStan, PHPUnit, and PHP-CS-Fixer
 
 ### Modifying Transaction Properties
 
