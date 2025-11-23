@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /*
- * This file is part of the CFONB Parser package.
+ * This file is part of the QIF Library package.
  *
  * (c) Mário Čechovič <mimographix@gmail.com>
  * (c) SILARHI <dev@silarhi.fr>
