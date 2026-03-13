@@ -1,20 +1,44 @@
 <?php
 
+declare(strict_types=1);
+
+/*
+ * This file is part of the QIF Library package.
+ *
+ * (c) Mário Čechovič <mimographix@gmail.com>
+ * (c) SILARHI <dev@silarhi.fr>
+ *
+ * This source file is subject to the MIT license that is bundled
+ * with this source code in the file LICENSE.
+ */
+
 namespace MimoGraphix\QIF\Enums;
 
 /**
- * Class HeaderLines
+ * Enum Types
  *
  * @author MimoGraphix <mimographix@gmail.com>
- * @package MimoGraphix\QIF\Enums
  */
-class Types
+enum Types: string
 {
-    const CASH = 'Cash';        // Cash Flow: Cash Account
-	const BANK = 'Bank';        // Cash Flow: Checking & Savings Account
-	const CCARD = 'CCard';      // Cash Flow: Credit Card Account
-	const INVST = 'Invst';      // Investing: Investment Account
-	const OTHA = 'Oth A';       // A	Property & Debt: Asset
-	const OTHL = 'Oth L';       // L	Property & Debt: Liability
-	const Invoice = 'Invoice';  // Invoice (Quicken for Business only)
+    /** Cash Flow: Cash Account */
+    case CASH = 'Cash';
+
+    /** Cash Flow: Checking & Savings Account */
+    case BANK = 'Bank';
+
+    /** Cash Flow: Credit Card Account */
+    case CCARD = 'CCard';
+
+    /** Investing: Investment Account */
+    case INVST = 'Invst';
+
+    /** Property & Debt: Asset */
+    case OTHA = 'Oth A';
+
+    /** Property & Debt: Liability */
+    case OTHL = 'Oth L';
+
+    /** Invoice (Quicken for Business only) */
+    case Invoice = 'Invoice';
 }

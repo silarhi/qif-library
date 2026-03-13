@@ -1,24 +1,37 @@
 <?php
 
+declare(strict_types=1);
+
+/*
+ * This file is part of the QIF Library package.
+ *
+ * (c) Mário Čechovič <mimographix@gmail.com>
+ * (c) SILARHI <dev@silarhi.fr>
+ *
+ * This source file is subject to the MIT license that is bundled
+ * with this source code in the file LICENSE.
+ */
+
 namespace MimoGraphix\QIF;
+
+use function dirname;
+
+use RuntimeException;
+use Stringable;
 
 /**
  * Class Writer
  *
  * @author MimoGraphix <mimographix@gmail.com>
- * @package MimoGraphix\QIF
  */
-class Writer
+class Writer implements Stringable
 {
     /**
      * @var Transaction[]
      */
-    private $transactions = [];
+    private array $transactions = [];
 
-    /**
-     * @param Transaction $transaction
-     */
-    public function addTransaction( Transaction $transaction )
+    public function addTransaction(Transaction $transaction): void
     {
         $this->transactions[] = $transaction;
     }
@@ -26,31 +39,33 @@ class Writer
     /**
      * @return Transaction[]
      */
-    public function getTransactions()
+    public function getTransactions(): array
     {
         return $this->transactions;
     }
 
-    public function __toString()
+    public function __toString(): string
     {
         $output = [];
 
-        foreach ( $this->transactions as $transaction )
-        {
+        foreach ($this->transactions as $transaction) {
             $output[] = (string) $transaction;
         }
 
-        return implode( PHP_EOL, array_filter( $output ) );
+        return implode(\PHP_EOL, array_filter($output));
     }
 
-    /**
-     * @param $filePath
-     */
-    public function saveToFile( $filePath )
+    public function saveToFile(string $filePath): void
     {
-        $file = fopen( $filePath, "w" ) or die( "Unable to open file!" );
-        fwrite( $file, (string) $this );
-        fclose( $file );
-    }
+        if (!is_writable(dirname($filePath))) {
+            throw new RuntimeException('Directory not writable: ' . dirname($filePath));
+        }
 
+        $file = fopen($filePath, 'w');
+        if (false === $file) {
+            throw new RuntimeException("Unable to open file: {$filePath}");
+        }
+        fwrite($file, (string) $this);
+        fclose($file);
+    }
 }

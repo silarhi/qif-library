@@ -1,0 +1,28 @@
+!Type:Bank
+D25/12/2023
+T-1234.50
+CX
+PStandard Oil
+AMain Street 123
+MFuel for company car
+LFuel:Car
+^
+D26/12/2023
+T500.00
+Cc
+PClient Payment
+MPayment for Invoice #123
+LSales
+SProduct
+$400.00
+ETaxable items
+STax
+$100.00
+ETax collected
+^
+D27/12/2023
+T-50.00
+P
+MATM Withdrawal
+LCash
+^

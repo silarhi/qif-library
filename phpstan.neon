@@ -1,0 +1,8 @@
+parameters:
+  level: 9
+  tmpDir: var/tools/phpstan
+  paths:
+    - src
+    - tests
+  ignoreErrors:
+    - '#Call to method PHPUnit\\Framework\\Assert::assertNull\(\) with null will always evaluate to true#'

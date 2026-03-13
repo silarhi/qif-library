@@ -1,273 +1,258 @@
 <?php
 
+declare(strict_types=1);
+
+/*
+ * This file is part of the QIF Library package.
+ *
+ * (c) Mário Čechovič <mimographix@gmail.com>
+ * (c) SILARHI <dev@silarhi.fr>
+ *
+ * This source file is subject to the MIT license that is bundled
+ * with this source code in the file LICENSE.
+ */
+
 namespace MimoGraphix\QIF;
 
-use Carbon\Carbon;
+use function array_key_exists;
+
+use DateTimeImmutable;
+use Exception;
+
+use function is_scalar;
+
 use MimoGraphix\QIF\Enums\DetailItems;
+use MimoGraphix\QIF\Enums\Status;
+use MimoGraphix\QIF\Enums\Types;
+
+use function sprintf;
+
+use Stringable;
 
 /**
  * Class Transaction
  *
  * @author MimoGraphix <mimographix@gmail.com>
- * @package MimoGraphix\QIF
  */
-class Transaction
+class Transaction implements Stringable
 {
-    /**
-     * @var string from Enums\HeaderLines
-     */
-    private $type = null;
+    private ?DateTimeImmutable $date = null;
+
+    private ?string $description = null;
+
+    private ?float $amount = null;
+
+    private ?string $category = null;
 
     /**
-     * @var Carbon
+     * @var array<string, array{amount: float, memo: ?string}>
      */
-    private $date = null;
+    private array $splits = [];
 
-    private $description = null;
+    private Status $status;
 
-    /**
-     * @var double|null
-     */
-    private $amount = null;
+    private ?string $address = null;
 
-    private $category = null;
-
-    /**
-     * @var array
-     */
-    private $splits = [];
-
-    private $status = '';
-
-    private $address = null;
-
-    private $memo = null;
+    private ?string $memo = null;
 
     /**
      * Used in parser to capture original values
-     * @var null
      */
-    public $_raw = null;
+    public ?string $_raw = null;
 
-    public function __construct( $type )
+    public function __construct(private readonly ?Types $type)
     {
-        $this->type = $type;
+        $this->status = Status::NOT_CLEARED;
     }
 
-    public function setDate( Carbon $date )
+    public function setDate(DateTimeImmutable $date): self
     {
         $this->date = $date;
+
         return $this;
     }
 
-    public function setDescription( $description )
+    public function setDescription(?string $description): self
     {
         $this->description = $description;
+
         return $this;
     }
 
-    /**
-     * @param double $float
-     * @return $this
-     */
-    public function setAmount( $float )
+    public function setAmount(float|int|string $float): self
     {
-        $this->amount = floatval( $float );
+        $this->amount = (float) $float;
+
         return $this;
     }
 
-    public function setCategory( $category )
+    public function setCategory(?string $category): self
     {
         $this->category = $category;
+
         return $this;
     }
 
     /**
-     * @param string $splitName
-     * @param float $amount
-     * @param string|null $memo
-     *
-     * @return $this
-     *
-     * @throws \Exception
+     * @throws Exception
      */
-    public function addSplit( $splitName, $amount, $memo = null )
+    public function addSplit(string $splitName, float|int|string $amount, ?string $memo = null): self
     {
-        if ( array_key_exists( $splitName, $this->splits ) )
-        {
-            throw new \Exception( sprintf( 'Split "%s" already exists in this transaction.', $splitName ) );
+        if (array_key_exists($splitName, $this->splits)) {
+            throw new Exception(sprintf('Split "%s" already exists in this transaction.', $splitName));
         }
 
-        $this->splits[ $splitName ] = [
-            DetailItems::AMNT => floatval( $amount ),
-            DetailItems::E => $memo,
+        $this->splits[$splitName] = [
+            'amount' => (float) $amount,
+            'memo' => $memo,
         ];
+
         return $this;
     }
 
-    public function removeSplit( $splitName )
+    public function removeSplit(string $splitName): self
     {
-        unset( $this->splits[ $splitName ] );
+        unset($this->splits[$splitName]);
+
         return $this;
     }
 
-    public function setStatus( $status )
+    public function setStatus(Status $status): self
     {
         $this->status = $status;
+
         return $this;
     }
 
-    public function markAsReconciled()
+    public function markAsReconciled(): self
     {
-        $this->status = 'X';
+        $this->status = Status::RECONCILED;
+
         return $this;
     }
 
-    public function markAsCleared()
+    public function markAsCleared(): self
     {
-        $this->status = 'c';
+        $this->status = Status::CLEARED;
+
         return $this;
     }
 
-    public function markAsNotCleared()
+    public function markAsNotCleared(): self
     {
-        $this->status = '';
+        $this->status = Status::NOT_CLEARED;
+
         return $this;
     }
 
-    public function __toString()
+    public function __toString(): string
     {
         $output = [
-            "!Type:" . $this->type,
+            '!Type:' . $this->type?->value,
             $this->renderDateLineIfNotNull(),
-            $this->renderIfNotNull( DetailItems::T, $this->amount ),
-            $this->renderIfNotNull( DetailItems::L, $this->category ),
+            $this->renderIfNotNull(DetailItems::T->value, $this->amount),
+            $this->renderIfNotNull(DetailItems::L->value, $this->category),
             $this->renderSplits(),
-            $this->renderIfNotNull( DetailItems::C, $this->status ),
-            $this->renderIfNotNull( DetailItems::P, $this->description ),
+            $this->renderIfNotNull(DetailItems::C->value, $this->status->value),
+            $this->renderIfNotNull(DetailItems::P->value, $this->description),
             '^',
         ];
 
-        return implode( PHP_EOL, array_filter( $output ) );
+        return implode(\PHP_EOL, array_filter($output));
     }
 
-    /**
-     * @return string|false
-     */
-    private function renderDateLineIfNotNull()
+    private function renderDateLineIfNotNull(): string|false
     {
-        if ( $this->date instanceof \DateTime )
-            return $this->renderIfNotNull( DetailItems::D, $this->date->format( 'd/m/Y' ) );
-
-        return false;
-    }
-
-    /**
-     * @param $characterKey
-     * @param null $value
-     * @return string|false
-     */
-    private function renderIfNotNull( $characterKey, $value = null )
-    {
-        if ( !is_null( $value ) )
-            return $characterKey.$value;
-
-        return false;
-    }
-
-    private function renderSplits()
-    {
-        $output = [];
-        foreach ( (array) $this->splits as $name => $split )
-        {
-            $output[] = $this->renderIfNotNull( DetailItems::S, $name );
-            $output[] = $this->renderIfNotNull( DetailItems::AMNT, $split[ DetailItems::AMNT ] );
-            $output[] = $this->renderIfNotNull( DetailItems::E, DetailItems::E );
+        if ($this->date instanceof DateTimeImmutable) {
+            return $this->renderIfNotNull(DetailItems::D->value, $this->date->format('d/m/Y'));
         }
 
-        return implode( PHP_EOL, array_filter( $output ) );
+        return false;
     }
 
-    public function setAddress( $address )
+    private function renderIfNotNull(string $characterKey, mixed $value = null): string|false
+    {
+        if (null !== $value) {
+            if (!is_scalar($value) && !($value instanceof Stringable)) {
+                return false;
+            }
+
+            return $characterKey . (string) $value;
+        }
+
+        return false;
+    }
+
+    private function renderSplits(): string
+    {
+        $output = [];
+        foreach ($this->splits as $name => $split) {
+            $output[] = $this->renderIfNotNull(DetailItems::S->value, $name);
+            $output[] = $this->renderIfNotNull(DetailItems::AMNT->value, $split['amount']);
+            $output[] = $this->renderIfNotNull(DetailItems::E->value, $split['memo'] ?? null);
+        }
+
+        return implode(\PHP_EOL, array_filter($output));
+    }
+
+    public function setAddress(?string $address): self
     {
         $this->address = $address;
+
         return $this;
     }
 
-    public function setMemo( $memo )
+    public function setMemo(?string $memo): self
     {
         $this->memo = $memo;
+
         return $this;
     }
 
-    /**
-     * @return string|null
-     */
-    public function getType()
+    public function getType(): ?Types
     {
         return $this->type;
     }
 
-    /**
-     * @return Carbon|null
-     */
-    public function getDate()
+    public function getDate(): ?DateTimeImmutable
     {
         return $this->date;
     }
 
-    /**
-     * @return string
-     */
-    public function getDescription()
+    public function getDescription(): ?string
     {
         return $this->description;
     }
 
-    /**
-     * @return double|null
-     */
-    public function getAmount()
+    public function getAmount(): ?float
     {
         return $this->amount;
     }
 
-    /**
-     * @return string|null
-     */
-    public function getCategory()
+    public function getCategory(): ?string
     {
         return $this->category;
     }
 
     /**
-     * @return array
+     * @return array<string, array{amount: float, memo: ?string}>
      */
-    public function getSplits()
+    public function getSplits(): array
     {
         return $this->splits;
     }
 
-    /**
-     * @return null
-     */
-    public function getStatus()
+    public function getStatus(): Status
     {
         return $this->status;
     }
 
-    /**
-     * @return string|null
-     */
-    public function getAddress()
+    public function getAddress(): ?string
     {
         return $this->address;
     }
 
-    /**
-     * @return string|null
-     */
-    public function getMemo()
+    public function getMemo(): ?string
     {
         return $this->memo;
     }

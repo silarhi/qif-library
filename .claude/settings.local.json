@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(vendor/bin/rector process:*)",
+      "Bash(vendor/bin/phpstan analyze:*)",
+      "Bash(vendor/bin/php-cs-fixer fix:*)",
+      "Bash(vendor/bin/phpunit:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
