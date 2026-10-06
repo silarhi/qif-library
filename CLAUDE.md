@@ -18,6 +18,7 @@ This is a PHP library for parsing and writing QIF (Quicken Interchange Format) f
 
 - **DetailItems** (`src/Enums/DetailItems.php`): Backed string enum defining all QIF field codes (D for date, T for amount, M for memo, etc.)
 - **Types** (`src/Enums/Types.php`): Backed string enum for QIF transaction types (Cash, Bank, CCard, Invst, etc.)
+- **Status** (`src/Enums/Status.php`): Backed string enum for the cleared status (`NOT_CLEARED` = '', `CLEARED` = 'c', `RECONCILED` = 'X')
 
 ### Key Design Patterns
 
@@ -80,8 +81,8 @@ vendor/bin/rector process --dry-run
 
 ## Dependencies
 
-- **nesbot/carbon**: ^2|^3 - Date/time handling for transactions
-- **Dev dependencies**: PHPStan, PHP-CS-Fixer, Rector
+- **No runtime dependencies** (only `php: ^8.2`); dates are native `DateTimeImmutable`
+- **Dev dependencies**: PHPUnit, PHPStan, PHP-CS-Fixer, Rector
 
 ## Important Implementation Details
 
