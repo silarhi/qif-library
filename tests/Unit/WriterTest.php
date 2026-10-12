@@ -17,7 +17,9 @@ use DateTimeImmutable;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
+use Silarhi\Qif\Enums\Status;
 use Silarhi\Qif\Enums\Types;
+use Silarhi\Qif\Parser;
 use Silarhi\Qif\Transaction;
 use Silarhi\Qif\Writer;
 use Stringable;
@@ -168,5 +170,37 @@ final class WriterTest extends TestCase
         // Test implicit string conversion
         $output = (string) $writer;
         self::assertStringContainsString('T100', $output);
+    }
+
+    public function testOutputParsesBackToTheSameTransactions(): void
+    {
+        $transaction = (new Transaction(Types::BANK))
+            ->setDate(new DateTimeImmutable('2023-12-25'))
+            ->setAmount(-1234.5)
+            ->setDescription('Standard Oil')
+            ->setAddress("Standard Oil\n101 Main St.")
+            ->setMemo('Fuel for car')
+            ->setCategory('Fuel:Car')
+            ->addSplit('Fuel:Car', -1000.0, 'Fuel')
+            ->addSplit('Fuel:Car', -234.5)
+            ->markAsCleared();
+        $writer = new Writer();
+        $writer->addTransaction($transaction);
+        $writer->addTransaction((new Transaction(Types::CASH))->setAmount(10.0));
+
+        $parsed = (new Parser((string) $writer, \PHP_EOL))->parse();
+
+        self::assertCount(2, $parsed);
+        self::assertSame(Types::BANK, $parsed[0]->getType());
+        self::assertEquals($transaction->getDate(), $parsed[0]->getDate());
+        self::assertSame(-1234.5, $parsed[0]->getAmount());
+        self::assertSame('Standard Oil', $parsed[0]->getDescription());
+        self::assertSame("Standard Oil\n101 Main St.", $parsed[0]->getAddress());
+        self::assertSame('Fuel for car', $parsed[0]->getMemo());
+        self::assertSame('Fuel:Car', $parsed[0]->getCategory());
+        self::assertSame($transaction->getSplits(), $parsed[0]->getSplits());
+        self::assertSame(Status::CLEARED, $parsed[0]->getStatus());
+        self::assertSame(Types::CASH, $parsed[1]->getType());
+        self::assertSame(10.0, $parsed[1]->getAmount());
     }
 }

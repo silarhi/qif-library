@@ -17,13 +17,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### Enums
 
 - **DetailItems** (`src/Enums/DetailItems.php`): Backed string enum defining all QIF field codes (D for date, T for amount, M for memo, etc.)
+- **DateFormat** (`src/Enums/DateFormat.php`): Parser option, `DAY_FIRST` (default) or `MONTH_FIRST` slash dates
+- **DecimalSeparator** (`src/Enums/DecimalSeparator.php`): Parser option, `POINT` or `COMMA`; null (default) detects it per amount
 - **Types** (`src/Enums/Types.php`): Backed string enum for QIF transaction types (Cash, Bank, CCard, Invst, etc.)
 - **Status** (`src/Enums/Status.php`): Backed string enum for the cleared status (`NOT_CLEARED` = '', `CLEARED` = 'c', `RECONCILED` = 'X')
 
 ### Key Design Patterns
 
 - Enums are PHP 8.1+ backed enums (not class constants). Access values with `->value` (e.g., `DetailItems::DATE->value`)
-- Transaction splits use array structure: `['amount' => float, 'memo' => ?string]`
+- Transaction splits are a list (several splits can share a category): `[['category' => string, 'amount' => float, 'memo' => ?string], ...]`
 - All constructor properties are `readonly` where appropriate
 - Methods use fluent interface pattern (return `self`) for chaining setters
 
@@ -94,9 +96,13 @@ The Parser uses a switch statement matching single-character field codes from th
 
 Dates are parsed once per distinct value within a `parse()` call (`$dateCache`), so transactions with the same date string share one `DateTimeImmutable` instance.
 
+Never store a guessed value: impossible dates (`31/02`, detected through `DateTimeImmutable::getLastErrors()` warnings), ambiguous amounts (`1,234`) and splits without `$` throw a `ParseException`. Amounts go through the `@internal` `AmountParser`, which `Transaction::setAmount()`/`addSplit()` also use for strings.
+
+`parse()` resets the transactions, skips non-transaction lists (`!Account`, `!Type:Cat|Class|Security|Prices`), ignores `!Option:`/`!Clear:` lines and keeps a last record without `^`. Each `S` line starts a split; `E`/`$` without an open split (investment transfers) are ignored. Multiple `A` lines are joined with `"\n"`, and the writer splits them back.
+
 ### Transaction Rendering
 
-Transaction objects convert to QIF format via `__toString()`, which concatenates the field lines directly (no intermediate arrays): null fields are skipped, empty strings are still rendered (e.g. `P` alone), dates are formatted as 'd/m/Y'.
+Transaction objects convert to QIF format via `__toString()`, which concatenates the field lines directly (no intermediate arrays): null fields are skipped, empty strings are still rendered (e.g. `P` alone), dates are formatted as 'd/m/Y'. Every parsed field is written back (date, amount, category, splits, status, payee, address, memo), so Writer output parses back to the same transactions.
 
 ### Error Handling
 
