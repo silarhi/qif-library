@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace Silarhi\Qif;
 
+use function array_key_exists;
+
 use DateTimeImmutable;
 use RuntimeException;
 use Silarhi\Qif\Enums\DetailItems;
@@ -68,6 +70,8 @@ class Parser
         $lastType = null;
         $transaction = new Transaction($lastType);
         $transactionRaw = '';
+        /** @var array<string, DateTimeImmutable|null> $dateCache */
+        $dateCache = [];
         while (false !== $line) {
             $line = trim($line);
             $transactionRaw .= $line . $this->separator;
@@ -86,14 +90,20 @@ class Parser
                     // Normalize whitespace (handle Y2K format like "1/ 1/ 0")
                     $normalizedDate = str_replace(' ', '0', $dateString);
 
-                    $date = null;
-                    $formats = ['Y-m-d', 'd/m/Y', 'y-m-d', 'd/m/y'];
-
-                    foreach ($formats as $format) {
-                        $parsedDate = DateTimeImmutable::createFromFormat($format, $normalizedDate);
-                        if (false !== $parsedDate) {
-                            $date = $parsedDate;
+                    if (array_key_exists($normalizedDate, $dateCache)) {
+                        $date = $dateCache[$normalizedDate];
+                    } else {
+                        $date = null;
+                        // Formats are tried by decreasing priority: the last matching format of
+                        // ['Y-m-d', 'd/m/Y', 'y-m-d', 'd/m/y'] wins, so stop at the first match here.
+                        foreach (['d/m/y', 'y-m-d', 'd/m/Y', 'Y-m-d'] as $format) {
+                            $parsedDate = DateTimeImmutable::createFromFormat($format, $normalizedDate);
+                            if (false !== $parsedDate) {
+                                $date = $parsedDate;
+                                break;
+                            }
                         }
+                        $dateCache[$normalizedDate] = $date;
                     }
 
                     if ($date instanceof DateTimeImmutable) {

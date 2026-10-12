@@ -17,9 +17,6 @@ use function array_key_exists;
 
 use DateTimeImmutable;
 use Exception;
-
-use function is_scalar;
-
 use Silarhi\Qif\Enums\DetailItems;
 use Silarhi\Qif\Enums\Status;
 use Silarhi\Qif\Enums\Types;
@@ -141,52 +138,29 @@ class Transaction implements Stringable
 
     public function __toString(): string
     {
-        $output = [
-            '!Type:' . $this->type?->value,
-            $this->renderDateLineIfNotNull(),
-            $this->renderIfNotNull(DetailItems::T->value, $this->amount),
-            $this->renderIfNotNull(DetailItems::L->value, $this->category),
-            $this->renderSplits(),
-            $this->renderIfNotNull(DetailItems::C->value, $this->status->value),
-            $this->renderIfNotNull(DetailItems::P->value, $this->description),
-            '^',
-        ];
+        $output = '!Type:' . $this->type?->value;
 
-        return implode(\PHP_EOL, array_filter($output, static fn (string|false $line): bool => false !== $line && '' !== $line));
-    }
-
-    private function renderDateLineIfNotNull(): string|false
-    {
-        if ($this->date instanceof DateTimeImmutable) {
-            return $this->renderIfNotNull(DetailItems::D->value, $this->date->format('d/m/Y'));
+        if (null !== $this->date) {
+            $output .= \PHP_EOL . DetailItems::D->value . $this->date->format('d/m/Y');
         }
-
-        return false;
-    }
-
-    private function renderIfNotNull(string $characterKey, mixed $value = null): string|false
-    {
-        if (null !== $value) {
-            if (!is_scalar($value) && !($value instanceof Stringable)) {
-                return false;
-            }
-
-            return $characterKey . (string) $value;
+        if (null !== $this->amount) {
+            $output .= \PHP_EOL . DetailItems::T->value . $this->amount;
         }
-
-        return false;
-    }
-
-    private function renderSplits(): string
-    {
-        $output = [];
+        if (null !== $this->category) {
+            $output .= \PHP_EOL . DetailItems::L->value . $this->category;
+        }
         foreach ($this->splits as $name => $split) {
-            $output[] = $this->renderIfNotNull(DetailItems::S->value, $name);
-            $output[] = $this->renderIfNotNull(DetailItems::AMNT->value, $split['amount']);
-            $output[] = $this->renderIfNotNull(DetailItems::E->value, $split['memo'] ?? null);
+            $output .= \PHP_EOL . DetailItems::S->value . $name . \PHP_EOL . DetailItems::AMNT->value . $split['amount'];
+            if (null !== $split['memo']) {
+                $output .= \PHP_EOL . DetailItems::E->value . $split['memo'];
+            }
+        }
+        $output .= \PHP_EOL . DetailItems::C->value . $this->status->value;
+        if (null !== $this->description) {
+            $output .= \PHP_EOL . DetailItems::P->value . $this->description;
         }
 
-        return implode(\PHP_EOL, array_filter($output, static fn (string|false $line): bool => false !== $line));
+        return $output . \PHP_EOL . '^';
     }
 
     public function setAddress(?string $address): self
