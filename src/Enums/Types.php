@@ -16,23 +16,23 @@ namespace Silarhi\Qif\Enums;
 enum Types: string
 {
     /** Cash Flow: Cash Account */
-    case CASH = 'Cash';
+    case Cash = 'Cash';
 
     /** Cash Flow: Checking & Savings Account */
-    case BANK = 'Bank';
+    case Bank = 'Bank';
 
     /** Cash Flow: Credit Card Account */
-    case CREDIT_CARD = 'CCard';
+    case CreditCard = 'CCard';
 
     /** Investing: Investment Account */
-    case INVESTMENT = 'Invst';
+    case Investment = 'Invst';
 
     /** Property & Debt: Asset */
-    case OTHER_ASSET = 'Oth A';
+    case OtherAsset = 'Oth A';
 
     /** Property & Debt: Liability */
-    case OTHER_LIABILITY = 'Oth L';
+    case OtherLiability = 'Oth L';
 
     /** Invoice (Quicken for Business only) */
-    case INVOICE = 'Invoice';
+    case Invoice = 'Invoice';
 }
