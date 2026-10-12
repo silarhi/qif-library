@@ -5,26 +5,20 @@ declare(strict_types=1);
 /*
  * This file is part of the QIF Library package.
  *
- * (c) Mário Čechovič <mimographix@gmail.com>
  * (c) SILARHI <dev@silarhi.fr>
  *
  * This source file is subject to the MIT license that is bundled
  * with this source code in the file LICENSE.
  */
 
-namespace MimoGraphix\QIF;
+namespace Silarhi\Qif;
 
 use DateTimeImmutable;
-use MimoGraphix\QIF\Enums\DetailItems;
-use MimoGraphix\QIF\Enums\Status;
-use MimoGraphix\QIF\Enums\Types;
 use RuntimeException;
+use Silarhi\Qif\Enums\DetailItems;
+use Silarhi\Qif\Enums\Status;
+use Silarhi\Qif\Enums\Types;
 
-/**
- * Class Parser
- *
- * @author MimoGraphix <mimographix@gmail.com>
- */
 class Parser
 {
     /**
@@ -135,7 +129,7 @@ class Parser
                     $transaction->_raw = $transactionRaw;
                     $this->transactions[] = $transaction;
                     $transaction = new Transaction($lastType);
-                    $transactionRaw = '!Type:' . (null !== $lastType ? $lastType->value : '');
+                    $transactionRaw = '!Type:' . ($lastType->value ?? '');
                     break;
             }
 

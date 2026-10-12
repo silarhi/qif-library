@@ -5,25 +5,19 @@ declare(strict_types=1);
 /*
  * This file is part of the QIF Library package.
  *
- * (c) Mário Čechovič <mimographix@gmail.com>
  * (c) SILARHI <dev@silarhi.fr>
  *
  * This source file is subject to the MIT license that is bundled
  * with this source code in the file LICENSE.
  */
 
-namespace MimoGraphix\QIF;
+namespace Silarhi\Qif;
 
 use function dirname;
 
 use RuntimeException;
 use Stringable;
 
-/**
- * Class Writer
- *
- * @author MimoGraphix <mimographix@gmail.com>
- */
 class Writer implements Stringable
 {
     /**
@@ -52,7 +46,7 @@ class Writer implements Stringable
             $output[] = (string) $transaction;
         }
 
-        return implode(\PHP_EOL, array_filter($output));
+        return implode(\PHP_EOL, array_filter($output, static fn (string $transaction): bool => '' !== $transaction));
     }
 
     public function saveToFile(string $filePath): void

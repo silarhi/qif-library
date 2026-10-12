@@ -5,7 +5,6 @@ declare(strict_types=1);
 /*
  * This file is part of the QIF Library package.
  *
- * (c) Mário Čechovič <mimographix@gmail.com>
  * (c) SILARHI <dev@silarhi.fr>
  *
  * This source file is subject to the MIT license that is bundled
@@ -15,11 +14,13 @@ declare(strict_types=1);
 use Rector\Config\RectorConfig;
 
 return RectorConfig::configure()
-    ->withCache(__DIR__ . '/var/tools/rector')
+    ->withImportNames()
     ->withPaths([
         __DIR__ . '/src',
+        __DIR__ . '/tests',
     ])
-     ->withPhpSets()
-    ->withTypeCoverageLevel(0)
-    ->withDeadCodeLevel(0)
-    ->withCodeQualityLevel(0);
+    // uncomment to reach your current PHP version
+    ->withPhpSets()
+    ->withComposerBased(
+        phpunit: true
+    );

@@ -5,84 +5,93 @@ declare(strict_types=1);
 /*
  * This file is part of the QIF Library package.
  *
- * (c) Mário Čechovič <mimographix@gmail.com>
  * (c) SILARHI <dev@silarhi.fr>
  *
  * This source file is subject to the MIT license that is bundled
  * with this source code in the file LICENSE.
  */
 
-namespace MimoGraphix\QIF\Tests\Unit\Enums;
+namespace Silarhi\Qif\Tests\Unit\Enums;
 
-use MimoGraphix\QIF\Enums\Types;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Silarhi\Qif\Enums\Types;
 
 #[CoversClass(Types::class)]
 final class TypesTest extends TestCase
 {
     public function testCashValue(): void
     {
-        $this->assertSame('Cash', Types::CASH->value);
+        self::assertSame('Cash', Types::CASH->value);
     }
 
     public function testBankValue(): void
     {
-        $this->assertSame('Bank', Types::BANK->value);
+        self::assertSame('Bank', Types::BANK->value);
     }
 
     public function testCCardValue(): void
     {
-        $this->assertSame('CCard', Types::CCARD->value);
+        self::assertSame('CCard', Types::CCARD->value);
     }
 
     public function testInvstValue(): void
     {
-        $this->assertSame('Invst', Types::INVST->value);
+        self::assertSame('Invst', Types::INVST->value);
     }
 
     public function testOthAValue(): void
     {
-        $this->assertSame('Oth A', Types::OTHA->value);
+        self::assertSame('Oth A', Types::OTHA->value);
     }
 
     public function testOthLValue(): void
     {
-        $this->assertSame('Oth L', Types::OTHL->value);
+        self::assertSame('Oth L', Types::OTHL->value);
     }
 
     public function testInvoiceValue(): void
     {
-        $this->assertSame('Invoice', Types::Invoice->value);
+        self::assertSame('Invoice', Types::Invoice->value);
     }
 
     public function testAllCasesExist(): void
     {
         $cases = Types::cases();
 
-        $this->assertCount(7, $cases);
-        $this->assertContains(Types::CASH, $cases);
-        $this->assertContains(Types::BANK, $cases);
-        $this->assertContains(Types::CCARD, $cases);
-        $this->assertContains(Types::INVST, $cases);
-        $this->assertContains(Types::OTHA, $cases);
-        $this->assertContains(Types::OTHL, $cases);
-        $this->assertContains(Types::Invoice, $cases);
+        self::assertCount(7, $cases);
+        self::assertContains(Types::CASH, $cases);
+        self::assertContains(Types::BANK, $cases);
+        self::assertContains(Types::CCARD, $cases);
+        self::assertContains(Types::INVST, $cases);
+        self::assertContains(Types::OTHA, $cases);
+        self::assertContains(Types::OTHL, $cases);
+        self::assertContains(Types::Invoice, $cases);
     }
 
     public function testTryFromValidValues(): void
     {
-        $this->assertSame(Types::CASH, Types::tryFrom('Cash'));
-        $this->assertSame(Types::BANK, Types::tryFrom('Bank'));
-        $this->assertSame(Types::CCARD, Types::tryFrom('CCard'));
-        $this->assertSame(Types::INVST, Types::tryFrom('Invst'));
-        $this->assertSame(Types::OTHA, Types::tryFrom('Oth A'));
-        $this->assertSame(Types::OTHL, Types::tryFrom('Oth L'));
-        $this->assertSame(Types::Invoice, Types::tryFrom('Invoice'));
+        self::assertSame(Types::CASH, Types::tryFrom('Cash'));
+        self::assertSame(Types::BANK, Types::tryFrom('Bank'));
+        self::assertSame(Types::CCARD, Types::tryFrom('CCard'));
+        self::assertSame(Types::INVST, Types::tryFrom('Invst'));
+        self::assertSame(Types::OTHA, Types::tryFrom('Oth A'));
+        self::assertSame(Types::OTHL, Types::tryFrom('Oth L'));
+        self::assertSame(Types::Invoice, Types::tryFrom('Invoice'));
     }
 
-    public function testTryFromInvalidValue(): void
+    #[DataProvider('provideInvalidValues')]
+    public function testTryFromInvalidValue(string $value): void
     {
-        $this->assertNull(Types::tryFrom('InvalidType'));
+        self::assertNull(Types::tryFrom($value));
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function provideInvalidValues(): iterable
+    {
+        yield 'unknown code' => ['InvalidType'];
     }
 }

@@ -1,5 +1,15 @@
 {
   "devDependencies": {
-    "markdownlint-cli2": "^0.19.0"
+    "husky": "^9.1.7",
+    "lint-staged": ">=17.6.0",
+    "prettier": "^3.9.10"
+  },
+  "lint-staged": {
+    "*.md": "prettier --write",
+    "*.php": "vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.dist.php",
+    "composer.json": "composer normalize"
+  },
+  "scripts": {
+    "prepare": "husky"
   }
 }

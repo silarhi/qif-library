@@ -5,14 +5,13 @@ declare(strict_types=1);
 /*
  * This file is part of the QIF Library package.
  *
- * (c) Mário Čechovič <mimographix@gmail.com>
  * (c) SILARHI <dev@silarhi.fr>
  *
  * This source file is subject to the MIT license that is bundled
  * with this source code in the file LICENSE.
  */
 
-namespace MimoGraphix\QIF;
+namespace Silarhi\Qif;
 
 use function array_key_exists;
 
@@ -21,19 +20,14 @@ use Exception;
 
 use function is_scalar;
 
-use MimoGraphix\QIF\Enums\DetailItems;
-use MimoGraphix\QIF\Enums\Status;
-use MimoGraphix\QIF\Enums\Types;
+use Silarhi\Qif\Enums\DetailItems;
+use Silarhi\Qif\Enums\Status;
+use Silarhi\Qif\Enums\Types;
 
 use function sprintf;
 
 use Stringable;
 
-/**
- * Class Transaction
- *
- * @author MimoGraphix <mimographix@gmail.com>
- */
 class Transaction implements Stringable
 {
     private ?DateTimeImmutable $date = null;
@@ -158,7 +152,7 @@ class Transaction implements Stringable
             '^',
         ];
 
-        return implode(\PHP_EOL, array_filter($output));
+        return implode(\PHP_EOL, array_filter($output, static fn (string|false $line): bool => false !== $line && '' !== $line));
     }
 
     private function renderDateLineIfNotNull(): string|false
@@ -192,7 +186,7 @@ class Transaction implements Stringable
             $output[] = $this->renderIfNotNull(DetailItems::E->value, $split['memo'] ?? null);
         }
 
-        return implode(\PHP_EOL, array_filter($output));
+        return implode(\PHP_EOL, array_filter($output, static fn (string|false $line): bool => false !== $line));
     }
 
     public function setAddress(?string $address): self
