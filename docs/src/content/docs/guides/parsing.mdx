@@ -1,0 +1,147 @@
+---
+title: Parsing QIF files
+description: Read a QIF file or string into Transaction objects, and what the parser reads, converts and ignores.
+sidebar:
+    order: 1
+---
+
+import Example from '../../../components/Example.astro'
+
+## From a file
+
+`Parser::parseFile()` reads the file, parses it and returns the parser. `getTransactions()` then returns the
+transactions, in the order of the file:
+
+<Example name="parsing" input="export.qif" />
+
+The `!Account` list at the top of the file holds the account, not a transaction: the parser skips it.
+
+`parseFile()` throws a `RuntimeException` when the file does not exist or cannot be read, and a `ParseException` on a
+value it cannot read without guessing: see [Error handling](/guides/error-handling/).
+
+## From a string
+
+To parse content you already have in memory (an upload, an HTTP response…), use the constructor and call `parse()`,
+which returns the transactions:
+
+```php
+use Silarhi\Qif\Parser;
+
+$transactions = (new Parser($content))->parse();
+```
+
+`getTransactions()` returns the same array afterwards, and an empty array until `parse()` has run. Calling `parse()`
+again parses the content again and replaces the transactions: `parseFile()` has already called it.
+
+The second argument of the constructor is the line separator, `"\r\n"` by default. Each of its characters ends a
+line, so the default reads Windows (`\r\n`), Unix (`\n`) and old Mac (`\r`) files, and skips empty lines: you never
+need to change it for these files.
+
+The whole content is held in memory, and so are the transactions.
+
+## Options
+
+`parseFile()` and the constructor take the date format and the decimal separator of the file:
+
+```php
+use Silarhi\Qif\Enums\DateFormat;
+use Silarhi\Qif\Enums\DecimalSeparator;
+use Silarhi\Qif\Parser;
+
+$parser = Parser::parseFile('/path/to/export.qif', DateFormat::MonthFirst, DecimalSeparator::Point);
+
+$transactions = (new Parser($content, dateFormat: DateFormat::DayFirst, decimalSeparator: DecimalSeparator::Comma))
+    ->parse();
+```
+
+| Option              | Default                | Values                                                                              |
+| ------------------- | ---------------------- | ----------------------------------------------------------------------------------- |
+| `$dateFormat`       | `DateFormat::DayFirst` | `DayFirst` (`25/12/2023`) or `MonthFirst` (`12/25/2023`): [Dates](#dates)           |
+| `$decimalSeparator` | `null`, detected       | `DecimalSeparator::Point` (`1,234.50`) or `Comma` (`1.234,50`): [Amounts](#amounts) |
+
+## What you get
+
+| Getter             | Type                 | QIF line      | Notes                                                                                        |
+| ------------------ | -------------------- | ------------- | -------------------------------------------------------------------------------------------- |
+| `getType()`        | `?Types`             | `!Type:`      | `Bank`, `Cash`, `CreditCard`… `null` for an unknown type                                     |
+| `getDate()`        | `?DateTimeImmutable` | `D`           | At midnight, `null` when missing or empty: see [Dates](#dates)                               |
+| `getAmount()`      | `?float`             | `T`, `U`      | `null` when missing or empty: see [Amounts](#amounts)                                        |
+| `getMemo()`        | `?string`            | `M`           |                                                                                              |
+| `getStatus()`      | `Status`             | `C`           | `Reconciled` (`X`, `R`), `Cleared` (`*`, `c`), else `NotCleared`                             |
+| `getDescription()` | `?string`            | `P`           | Payee                                                                                        |
+| `getAddress()`     | `?string`            | `A`           | Every `A` line of the record, joined with `"\n"`                                             |
+| `getCategory()`    | `?string`            | `L`           |                                                                                              |
+| `getSplits()`      | `list<array>`        | `S`, `E`, `$` | `[['category' => string, 'amount' => float, 'memo' => ?string], ...]`: see [Splits](#splits) |
+
+The values are the rest of the line after its code, with the spaces around the line trimmed. A field missing from the
+record is `null`, an empty one (a bare `P` line) is an empty string.
+
+## How a file is read
+
+- **Records** end with a `^` line. The last record of the file is kept even without its closing `^`, and so is a
+  record followed by a new header.
+- **Headers**: a `!Type:` line sets the type of the records that follow it, until the next header. An unknown type
+  (`!Type:Memorized`) gives them a `null` type. The type values are listed in [Types](/reference/enums/#types).
+- **Lists that are not transactions** are skipped, up to the next header: accounts (`!Account`), categories
+  (`!Type:Cat`), classes (`!Type:Class`), securities (`!Type:Security`) and prices (`!Type:Prices`).
+- **Options**: `!Option:` and `!Clear:` lines (`!Option:AutoSwitch`) are ignored, and leave the type of the records
+  that follow them unchanged.
+- **Amounts**: when a record has both a `T` and a `U` line, the last one wins.
+- **The UTF-8 BOM** is removed, wherever it is.
+- **Ignored lines**: the check number (`N`), the split percentage (`%`), the investment fields (`Y`, `I`, `Q`, `O`),
+  the reimbursable flag (`F`), the budget (`B`) and the invoice fields (`X…`). The
+  [field reference](/reference/enums/#detailitems) lists what is read and what is written.
+
+## Splits
+
+Each `S` line starts a split of the transaction: its category. The `E` line after it is its memo, the `$` line its
+amount, read like the `T` amount. `getSplits()` returns them as a list, in the order of the file, as several splits can
+share a category:
+
+```php
+[
+    ['category' => 'Food:Groceries', 'amount' => -64.3, 'memo' => 'Weekly groceries'],
+    ['category' => 'Household', 'amount' => -20.0, 'memo' => null],
+]
+```
+
+A split without a `$` line throws a `ParseException`. A `$` or `E` line that does not follow an `S` line is ignored:
+in investment records, `$` is the amount transferred.
+
+## Dates
+
+The parser replaces the `'` year separator with `/` and spaces with `0` (`1/ 1/ 0` becomes `1/01/00`), then reads the
+date with two-digit or four-digit years, day first by default. ISO dates (`2026-01-31`, `26-01-31`) are read whatever
+the date format. For the month-first dates of US versions of Quicken, pass `DateFormat::MonthFirst`:
+
+<Example name="dates" />
+
+- Dates are at midnight, in the default timezone of PHP.
+- A date that does not exist with the chosen format throws a `ParseException` instead of rolling over: `31/02/2026`,
+  or `01/31/2026` read day first. So does a value that is not a date (`Jan 31`).
+- An empty `D` line leaves the date `null`.
+- Transactions with the same date string share one `DateTimeImmutable` instance.
+
+## Amounts
+
+Amounts can group their thousands with `,`, `.` or spaces (including the no-break spaces of French amounts). By
+default, the decimal separator is detected for each amount:
+
+- a plain number (`-1234.50`, `1.234`) uses a decimal point, as in the QIF specification;
+- when an amount has both `,` and `.`, the last one separates the decimals (`1,234.50`, `1.234,50`);
+- a separator repeated groups thousands (`1,234,567`);
+- a single `,` is a decimal comma (`12,50`), except after 1 to 3 digits and before exactly 3 (`1,234`): that amount
+  is ambiguous, `1234` or `1.234`, and throws a `ParseException`.
+
+Pass `DecimalSeparator::Point` or `DecimalSeparator::Comma` to read every amount of the file the same way. An amount
+written in the other convention then throws a `ParseException`, and so does a value that is not a number (`12 EUR`):
+
+<Example name="amounts" />
+
+An empty `T` line leaves the amount `null`.
+
+## Raw record
+
+Each parsed transaction keeps the lines it was read from in its public `$_raw` property, for debugging and logs. Its
+header line comes first, on a line of its own (`!Type:Bank`, or `!Type:Memorized` for an unknown type). It is `null` on the transactions you
+build yourself. Its exact format is not part of the API.

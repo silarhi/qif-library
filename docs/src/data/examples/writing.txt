@@ -1,0 +1,22 @@
+!Type:Bank
+D15/01/2026
+T-118.99
+LHome
+SHome:Tools
+$-100
+STax
+$-18.99
+EVAT
+Cc
+PExample Hardware Store
+A1 Market Square
+ASpringfield
+MDrill and bits
+^
+!Type:Bank
+D31/01/2026
+T2400
+LIncome:Salary
+C
+PAcme Corp
+^

@@ -1,0 +1,53 @@
+---
+title: QIF Library
+description: A PHP library to parse and write QIF (Quicken Interchange Format) files.
+template: splash
+hero:
+    tagline: Read Quicken Interchange Format exports into typed PHP objects, or generate QIF files from your own transactions.
+    actions:
+        - text: Get started
+          link: /getting-started/installation/
+          icon: right-arrow
+        - text: View on GitHub
+          link: https://github.com/silarhi/qif-library
+          icon: github
+          variant: minimal
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components'
+
+```bash
+composer require silarhi/qif-library
+```
+
+<CardGrid>
+    <Card title="Parser" icon="document">
+        Reads the date, amount, memo, cleared status, payee, address, category and splits of every transaction.
+    </Card>
+    <Card title="Writer" icon="pencil">
+        Builds QIF output from `Transaction` objects, splits, memo and address included: what the parser reads, the
+        writer writes back.
+    </Card>
+    <Card title="Typed results" icon="list-format">
+        Dates as `DateTimeImmutable`, amounts as `float`, account types and cleared status as enums.
+    </Card>
+    <Card title="No silent guesses" icon="warning">
+        Impossible dates (`31/02/2023`) and ambiguous amounts (`1,234`) throw a `ParseException` instead of being rolled
+        over or misread.
+    </Card>
+    <Card title="Day- or month-first dates" icon="approve-check">
+        `d/m/Y` by default, `m/d/Y` for US exports, ISO dates always. The `'` year separator and space-padded dates (`1/
+        1/ 0`) too.
+    </Card>
+    <Card title="Both number conventions" icon="setting">
+        `1,234.50` and `1.234,50`, the decimal separator detected for each amount or set for the whole file.
+    </Card>
+    <Card title="No dependencies" icon="rocket">
+        Plain PHP 8.2+. Works with Windows (`\r\n`) and Unix line endings, and strips the UTF-8 BOM.
+    </Card>
+</CardGrid>
+
+## Credits
+
+This library started as a fork of [mimographix/qif-library](https://github.com/MimoGraphix/qif-library) by Mário
+Čechovič.

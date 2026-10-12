@@ -1,0 +1,10 @@
+T line       Detected         Point            Comma
+T-1234.50    -1234.5          -1234.5          ParseException
+T1,234.50    1234.5           1234.5           ParseException
+T1.234,50    1234.5           ParseException   1234.5
+T12,50       12.5             ParseException   12.5
+T1,234,567   1234567.0        1234567.0        ParseException
+T1.234       1.234            1.234            1234.0
+T1 234,50    1234.5           ParseException   1234.5
+T1,234       ParseException   1234.0           1.234
+T12 EUR      ParseException   ParseException   ParseException

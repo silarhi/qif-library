@@ -1,0 +1,64 @@
+---
+title: Error handling
+description: The exceptions the library throws, and the input it accepts without an error.
+sidebar:
+    order: 3
+---
+
+import Example from '../../../components/Example.astro'
+
+## Exceptions
+
+- `Parser::parseFile()` throws a `RuntimeException` when the file does not exist or cannot be read
+- `Parser::parse()` and `Parser::parseFile()` throw a `Silarhi\Qif\Exception\ParseException` on a value they cannot
+  read without guessing: a date that does not exist or is not a date, an amount that is not a number or is ambiguous
+  (`1,234`), a split without amount
+- `Writer::saveToFile()` throws a `RuntimeException` when the directory is not writable or the file cannot be opened
+- `Transaction::setAmount()` and `addSplit()` throw an `InvalidArgumentException` when given a string that is not an
+  amount or is ambiguous (`'1,234'`)
+
+The messages include the path or the value:
+
+<Example name="errors" />
+
+`ParseException` extends `RuntimeException`: catching `RuntimeException` around `parseFile()` catches both the file
+errors and the parse errors. A `ParseException` stops the parsing: the transactions read before it are not returned.
+The full list, with every message, is in the [exceptions reference](/reference/exceptions/).
+
+### Fixing a ParseException
+
+| Message                                                                                           | Cause                                                                | Fix                                                                              |
+| ------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| `"01/31/2026" is not a valid date with the day first…`                                            | Month-first dates (US versions of Quicken)                           | Pass `DateFormat::MonthFirst`: see [Dates](/guides/parsing/#dates)               |
+| `"31/02/2026" is not a valid date…`                                                               | A date that does not exist with either format                        | Fix the file                                                                     |
+| `"1,234" is ambiguous…`                                                                           | A single `,` between 1 to 3 digits and 3 digits: `1234` or `1.234`   | Pass the `DecimalSeparator` of the file: see [Amounts](/guides/parsing/#amounts) |
+| `"…" is not an amount with "." as decimal separator.`, `"…" does not group its thousands by ",".` | An amount in the other convention than the `DecimalSeparator` passed | Pass the other `DecimalSeparator`, or none to detect it                          |
+| `"12EUR" is not an amount.`                                                                       | Not a number                                                         | Fix the file                                                                     |
+| `The split "Tax" has no amount ($ line).`                                                         | An `S` line without its `$` line                                     | Fix the file                                                                     |
+
+## What does not throw
+
+The parser never stores a guessed value, but it accepts records with missing fields and lines it does not know. Check
+what matters to you after parsing:
+
+| Input                                                                          | Result                                                                 |
+| ------------------------------------------------------------------------------ | ---------------------------------------------------------------------- |
+| A record without `D` or `T` line, or an empty one                              | `getDate()` or `getAmount()` returns `null`                            |
+| An unknown `!Type:` (`!Type:Memorized`)                                        | `getType()` returns `null`                                             |
+| `!Account`, `!Type:Cat`, `!Type:Class`, `!Type:Security`, `!Type:Prices` lists | Skipped: they hold no transactions                                     |
+| `!Option:` and `!Clear:` lines                                                 | Ignored                                                                |
+| An unknown cleared status                                                      | `Status::NotCleared`                                                   |
+| A last record without its closing `^`                                          | Kept                                                                   |
+| A `$` or `E` line that does not follow an `S` line                             | Ignored (the transfer amount of investment records)                    |
+| A line with an unknown or ignored code                                         | Ignored: see [How a file is read](/guides/parsing/#how-a-file-is-read) |
+| Content that is not QIF at all                                                 | Transactions with `null` fields, or a `ParseException`                 |
+
+For instance, to reject the transactions without a date:
+
+```php
+foreach ($parser->getTransactions() as $transaction) {
+    if (null === $transaction->getDate()) {
+        throw new UnexpectedValueException('Transaction without a date: ' . $transaction->_raw);
+    }
+}
+```

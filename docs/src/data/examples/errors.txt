@@ -1,0 +1,7 @@
+File not found or not readable: missing.qif
+Directory not writable: /missing/directory
+"31/02/2026" is not a valid date with the day first (DateFormat::DayFirst).
+"1,234" is ambiguous: "," can be a decimal or a thousands separator. Pass the decimal separator explicitly.
+"12EUR" is not an amount.
+The split "Tax" has no amount ($ line).
+"1,234" is ambiguous: "," can be a decimal or a thousands separator. Pass the decimal separator explicitly.

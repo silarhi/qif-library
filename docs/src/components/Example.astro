@@ -1,0 +1,37 @@
+---
+/**
+ * A runnable example: the QIF file it reads (if any), the PHP script, and what the script prints.
+ *
+ *     import Example from '../../../components/Example.astro'
+ *     <Example name="round-trip" input="export.qif" />
+ *
+ * Reads docs/examples/<name>.php and its output, docs/src/data/examples/<name>.txt
+ * (`php docs/scripts/render-examples.php`).
+ */
+import { Code } from '@astrojs/starlight/components'
+
+interface Props {
+    name: string
+    /** A file of docs/examples/ the script reads, shown before it. */
+    input?: string
+    /** Language of the output block. */
+    lang?: string
+}
+
+const files = import.meta.glob<string>('../../examples/*', { query: '?raw', import: 'default', eager: true })
+const outputs = import.meta.glob<string>('../data/examples/*.txt', { query: '?raw', import: 'default', eager: true })
+
+const { name, input, lang = 'txt' } = Astro.props
+const php = files[`../../examples/${name}.php`]
+const output = outputs[`../data/examples/${name}.txt`]
+const qif = input === undefined ? undefined : files[`../../examples/${input}`]
+if (php === undefined || output === undefined || (input !== undefined && qif === undefined)) {
+    throw new Error(
+        `Example "${name}" not found: add docs/examples/${name}.php, then run php docs/scripts/render-examples.php`
+    )
+}
+---
+
+{qif !== undefined && <Code code={qif.trimEnd()} lang="txt" title={input} />}
+<Code code={php.trimEnd()} lang="php" title={`${name}.php`} />
+<Code code={output.trimEnd()} lang={lang} title="Output" />

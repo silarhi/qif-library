@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - `DateFormat` option of `Parser` and `Parser::parseFile()`: `DayFirst` (`25/12/2023`, the default) or `MonthFirst` (`12/25/2023`, US versions of Quicken). ISO dates are read with either.
-- `DecimalSeparator` option of `Parser` and `Parser::parseFile()`: `POINT` (`1,234.50`) or `COMMA` (`1.234,50`). By default the separator is detected for each amount.
+- `DecimalSeparator` option of `Parser` and `Parser::parseFile()`: `Point` (`1,234.50`) or `Comma` (`1.234,50`). By default the separator is detected for each amount.
 - `Silarhi\Qif\Exception\ParseException`, a `RuntimeException` thrown on values that cannot be read without guessing.
 
 ### Changed

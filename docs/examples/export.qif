@@ -1,0 +1,31 @@
+!Account
+NChecking
+TBank
+^
+!Type:Bank
+D03/01/2026
+T-1,250.00
+CX
+PExample Property Rentals
+A12 Sample Street
+ASpringfield
+MJanuary rent
+LHousing:Rent
+^
+D05/01/2026
+T2,400.00
+C*
+PAcme Corp
+MSalary
+LIncome:Salary
+^
+D07/01/2026
+T-84.30
+PDemo Grocery
+LFood
+SFood:Groceries
+$-64.30
+EWeekly groceries
+SHousehold
+$-20.00
+^
