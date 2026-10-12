@@ -16,15 +16,18 @@ sidebar:
 composer require silarhi/qif-library
 ```
 
-The classes live in the `Silarhi\Qif` namespace, and the enums in `Silarhi\Qif\Enums`:
+The classes live in the `Silarhi\Qif` namespace, the enums in `Silarhi\Qif\Enums`:
 
-| Class                           | Role                                                             |
-| ------------------------------- | ---------------------------------------------------------------- |
-| `Silarhi\Qif\Parser`            | Reads QIF content into `Transaction` objects                     |
-| `Silarhi\Qif\Writer`            | Turns `Transaction` objects into QIF content                     |
-| `Silarhi\Qif\Transaction`       | One QIF record: date, amount, payee, category, splits, status…   |
-| `Silarhi\Qif\Enums\Types`       | The account type of the `!Type:` header (`BANK`, `CREDIT_CARD`…) |
-| `Silarhi\Qif\Enums\Status`      | The cleared status (`NOT_CLEARED`, `CLEARED`, `RECONCILED`)      |
-| `Silarhi\Qif\Enums\DetailItems` | The QIF field codes (`DATE` is `D`, `AMOUNT` is `T`…)            |
+| Class                                  | Role                                                             |
+| -------------------------------------- | ---------------------------------------------------------------- |
+| `Silarhi\Qif\Parser`                   | Reads QIF content into `Transaction` objects                     |
+| `Silarhi\Qif\Writer`                   | Turns `Transaction` objects into QIF content                     |
+| `Silarhi\Qif\Transaction`              | One QIF record: date, amount, payee, category, splits, status…   |
+| `Silarhi\Qif\Enums\Types`              | The account type of the `!Type:` header (`Bank`, `CreditCard`…)  |
+| `Silarhi\Qif\Enums\Status`             | The cleared status (`NotCleared`, `Cleared`, `Reconciled`)       |
+| `Silarhi\Qif\Enums\DetailItems`        | The QIF field codes (`Date` is `D`, `Amount` is `T`…)            |
+| `Silarhi\Qif\Enums\DateFormat`         | Parser option: slash dates day first (`DayFirst`) or month first |
+| `Silarhi\Qif\Enums\DecimalSeparator`   | Parser option: amounts with a decimal `Point` or `Comma`         |
+| `Silarhi\Qif\Exception\ParseException` | Thrown on a value the parser cannot read without guessing        |
 
-Coming from `mimographix/qif-library` or from version 1? See [Upgrading](/upgrading/).
+Coming from `mimographix/qif-library`, or from version 1 or 2? See [Upgrading](/upgrading/).

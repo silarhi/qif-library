@@ -1,19 +1,19 @@
 {
-    "type": "BANK",
+    "type": "Bank",
     "date": "2026-01-03",
     "amount": -1250,
-    "status": "RECONCILED",
+    "status": "Reconciled",
     "payee": "Example Property Rentals",
-    "address": "12 Sample Street",
+    "address": "12 Sample Street\nSpringfield",
     "memo": "January rent",
     "category": "Housing:Rent",
     "splits": []
 }
 {
-    "type": "BANK",
+    "type": "Bank",
     "date": "2026-01-05",
     "amount": 2400,
-    "status": "CLEARED",
+    "status": "Cleared",
     "payee": "Acme Corp",
     "address": null,
     "memo": "Salary",
@@ -21,13 +21,24 @@
     "splits": []
 }
 {
-    "type": "BANK",
+    "type": "Bank",
     "date": "2026-01-07",
     "amount": -84.3,
-    "status": "NOT_CLEARED",
+    "status": "NotCleared",
     "payee": "Demo Grocery",
     "address": null,
     "memo": null,
     "category": "Food",
-    "splits": []
+    "splits": [
+        {
+            "category": "Food:Groceries",
+            "amount": -64.3,
+            "memo": "Weekly groceries"
+        },
+        {
+            "category": "Household",
+            "amount": -20,
+            "memo": null
+        }
+    ]
 }

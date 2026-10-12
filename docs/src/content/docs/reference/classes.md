@@ -9,12 +9,31 @@ sidebar:
 
 `Silarhi\Qif\Parser` reads QIF content. See [Parsing QIF files](/guides/parsing/).
 
-| Method                                                         | Returns         | Description                                                                |
-| -------------------------------------------------------------- | --------------- | -------------------------------------------------------------------------- |
-| `__construct(string $fileContent, string $separator = "\r\n")` |                 | The content to parse; each character of `$separator` ends a line           |
-| `static parseFile(string $filePath)`                           | `Parser`        | Reads and parses a file. Throws a `RuntimeException`                       |
-| `parse()`                                                      | `Transaction[]` | Parses the content, adds the transactions to the parser's list, returns it |
-| `getTransactions()`                                            | `Transaction[]` | The transactions parsed so far                                             |
+```php
+public function __construct(
+    string $fileContent,
+    string $separator = "\r\n",
+    DateFormat $dateFormat = DateFormat::DayFirst,
+    ?DecimalSeparator $decimalSeparator = null,
+)
+
+public static function parseFile(
+    string $filePath,
+    DateFormat $dateFormat = DateFormat::DayFirst,
+    ?DecimalSeparator $decimalSeparator = null,
+): Parser
+```
+
+| Method               | Returns         | Description                                                                                               |
+| -------------------- | --------------- | --------------------------------------------------------------------------------------------------------- |
+| `__construct()`      |                 | The content to parse; each character of `$separator` ends a line. See [Options](/guides/parsing/#options) |
+| `static parseFile()` | `Parser`        | Reads and parses a file. Throws a `RuntimeException` or a `ParseException`                                |
+| `parse()`            | `Transaction[]` | Parses the content, replacing the transactions of a previous call. Throws a `ParseException`              |
+| `getTransactions()`  | `Transaction[]` | The transactions of the last `parse()` call, an empty array before                                        |
+
+`$decimalSeparator` is `null` to detect the decimal separator of each amount. The enums `DateFormat` and
+`DecimalSeparator` are in `Silarhi\Qif\Enums`: see [DateFormat](/reference/enums/#dateformat) and
+[DecimalSeparator](/reference/enums/#decimalseparator).
 
 ## Transaction
 
@@ -22,32 +41,40 @@ sidebar:
 QIF. See [Writing QIF files](/guides/writing/).
 
 `__construct(?Types $type)`: the account type can't be changed afterwards. A new transaction has no date, amount, payee,
-category, memo, address or split, and the `Status::NOT_CLEARED` status.
+category, memo, address or split, and the `Status::NotCleared` status.
 
-| Getter                          | Setters                                                                                                           | QIF line      |
-| ------------------------------- | ----------------------------------------------------------------------------------------------------------------- | ------------- |
-| `getType(): ?Types`             | None: set by the constructor                                                                                      | `!Type:`      |
-| `getDate(): ?DateTimeImmutable` | `setDate(DateTimeImmutable $date)`                                                                                | `D`           |
-| `getAmount(): ?float`           | `setAmount(float\|int\|string $float)`, cast to `float`                                                           | `T`           |
-| `getDescription(): ?string`     | `setDescription(?string $description)`                                                                            | `P`           |
-| `getCategory(): ?string`        | `setCategory(?string $category)`                                                                                  | `L`           |
-| `getMemo(): ?string`            | `setMemo(?string $memo)`                                                                                          | `M`           |
-| `getAddress(): ?string`         | `setAddress(?string $address)`                                                                                    | `A`           |
-| `getStatus(): Status`           | `setStatus(Status $status)`, `markAsReconciled()`, `markAsCleared()`, `markAsNotCleared()`                        | `C`           |
-| `getSplits(): array`            | `addSplit(string $splitName, float\|int\|string $amount, ?string $memo = null)`, `removeSplit(string $splitName)` | `S`, `$`, `E` |
+| Getter                          | Setters                                                                                                         | QIF line      |
+| ------------------------------- | --------------------------------------------------------------------------------------------------------------- | ------------- |
+| `getType(): ?Types`             | None: set by the constructor                                                                                    | `!Type:`      |
+| `getDate(): ?DateTimeImmutable` | `setDate(DateTimeImmutable $date)`                                                                              | `D`           |
+| `getAmount(): ?float`           | `setAmount(float\|int\|string $float)`                                                                          | `T`           |
+| `getDescription(): ?string`     | `setDescription(?string $description)`                                                                          | `P`           |
+| `getCategory(): ?string`        | `setCategory(?string $category)`                                                                                | `L`           |
+| `getMemo(): ?string`            | `setMemo(?string $memo)`                                                                                        | `M`           |
+| `getAddress(): ?string`         | `setAddress(?string $address)`, its lines separated by `"\n"`                                                   | `A`           |
+| `getStatus(): Status`           | `setStatus(Status $status)`, `markAsReconciled()`, `markAsCleared()`, `markAsNotCleared()`                      | `C`           |
+| `getSplits(): array`            | `addSplit(string $category, float\|int\|string $amount, ?string $memo = null)`, `removeSplit(string $category)` | `S`, `$`, `E` |
 
-Setters return the transaction. The parser fills every field but the splits, and the writer leaves out the memo and
-the address: see [Parsing](/guides/parsing/#what-you-get) and [Writing](/guides/writing/#output-format).
+Setters return the transaction. The parser fills every field and the writer outputs every field: see
+[Parsing](/guides/parsing/#what-you-get) and [Writing](/guides/writing/#output-format).
 
-`getSplits()` returns `array<string, array{amount: float, memo: ?string}>`, keyed
-by the split name:
+`setAmount()` and `addSplit()` read a string amount with its thousands separators, in either convention (`'1,234.50'`,
+`'1.234,50'`), and throw an `InvalidArgumentException` on a string that is not an amount or is ambiguous (`'1,234'`):
+see [String amounts](/guides/writing/#string-amounts).
+
+`getSplits()` returns a `list<array{category: string, amount: float, memo: ?string}>`, in the order the splits were
+added or parsed. Several splits can share a category:
 
 ```php
-['Sales' => ['amount' => 18.0, 'memo' => null], 'Tax' => ['amount' => 0.99, 'memo' => 'VAT']]
+[
+    ['category' => 'Sales', 'amount' => 18.0, 'memo' => null],
+    ['category' => 'Tax', 'amount' => 0.99, 'memo' => 'VAT'],
+]
 ```
 
-`addSplit()` throws an `Exception` when a split with the same name exists. The public `?string $_raw` property holds the
-lines a parsed transaction was read from (see [Raw record](/guides/parsing/#raw-record)).
+`addSplit()` adds a split at the end, `removeSplit()` removes every split of the category (and does nothing when there
+is none). The public `?string $_raw` property holds the lines a parsed transaction was read from (see
+[Raw record](/guides/parsing/#raw-record)).
 
 ## Writer
 
@@ -58,3 +85,8 @@ lines a parsed transaction was read from (see [Raw record](/guides/parsing/#raw-
 | `addTransaction(Transaction $transaction)` | `void`          | Adds a transaction                                                        |
 | `getTransactions()`                        | `Transaction[]` | The transactions added so far                                             |
 | `saveToFile(string $filePath)`             | `void`          | Writes the content to the file, replacing it. Throws a `RuntimeException` |
+
+## ParseException
+
+`Silarhi\Qif\Exception\ParseException` extends `RuntimeException`, with no method of its own. See
+[Exceptions](/reference/exceptions/).

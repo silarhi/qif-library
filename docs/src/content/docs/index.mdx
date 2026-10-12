@@ -22,16 +22,25 @@ composer require silarhi/qif-library
 
 <CardGrid>
     <Card title="Parser" icon="document">
-        Reads the date, amount, memo, cleared status, payee, address and category of every transaction.
+        Reads the date, amount, memo, cleared status, payee, address, category and splits of every transaction.
     </Card>
     <Card title="Writer" icon="pencil">
-        Builds QIF output from `Transaction` objects, including split transactions.
+        Builds QIF output from `Transaction` objects, splits, memo and address included: what the parser reads, the
+        writer writes back.
     </Card>
     <Card title="Typed results" icon="list-format">
         Dates as `DateTimeImmutable`, amounts as `float`, account types and cleared status as enums.
     </Card>
-    <Card title="Lenient dates" icon="approve-check">
-        Accepts `Y-m-d`, `d/m/Y`, `y-m-d` and `d/m/y`, the `'` year separator and space-padded dates (`1/ 1/ 0`).
+    <Card title="No silent guesses" icon="warning">
+        Impossible dates (`31/02/2023`) and ambiguous amounts (`1,234`) throw a `ParseException` instead of being rolled
+        over or misread.
+    </Card>
+    <Card title="Day- or month-first dates" icon="approve-check">
+        `d/m/Y` by default, `m/d/Y` for US exports, ISO dates always. The `'` year separator and space-padded dates (`1/
+        1/ 0`) too.
+    </Card>
+    <Card title="Both number conventions" icon="setting">
+        `1,234.50` and `1.234,50`, the decimal separator detected for each amount or set for the whole file.
     </Card>
     <Card title="No dependencies" icon="rocket">
         Plain PHP 8.2+. Works with Windows (`\r\n`) and Unix line endings, and strips the UTF-8 BOM.

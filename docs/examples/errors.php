@@ -1,6 +1,7 @@
 <?php
 
 use Silarhi\Qif\Enums\Types;
+use Silarhi\Qif\Exception\ParseException;
 use Silarhi\Qif\Parser;
 use Silarhi\Qif\Transaction;
 use Silarhi\Qif\Writer;
@@ -17,10 +18,22 @@ try {
     echo $e->getMessage(), PHP_EOL;
 }
 
+$records = [
+    "!Type:Bank\nD31/02/2026\n^",  // a date that does not exist
+    "!Type:Bank\nT1,234\n^",       // 1234 or 1.234?
+    "!Type:Bank\nT12 EUR\n^",      // not a number
+    "!Type:Bank\nT-20\nSTax\n^",   // a split without its $ line
+];
+foreach ($records as $content) {
+    try {
+        (new Parser($content))->parse();
+    } catch (ParseException $e) {
+        echo $e->getMessage(), PHP_EOL;
+    }
+}
+
 try {
-    (new Transaction(Types::BANK))
-        ->addSplit('Tax', -18.99)
-        ->addSplit('Tax', -1.50);
-} catch (Exception $e) {
+    (new Transaction(Types::Bank))->setAmount('1,234');
+} catch (InvalidArgumentException $e) {
     echo $e->getMessage(), PHP_EOL;
 }

@@ -7,9 +7,11 @@ use Silarhi\Qif\Writer;
 $writer = new Writer();
 
 $writer->addTransaction(
-    (new Transaction(Types::BANK))
+    (new Transaction(Types::Bank))
         ->setDate(new DateTimeImmutable('2026-01-15'))
         ->setDescription('Example Hardware Store')
+        ->setAddress("1 Market Square\nSpringfield")
+        ->setMemo('Drill and bits')
         ->setAmount(-118.99)
         ->setCategory('Home')
         ->addSplit('Home:Tools', -100)
@@ -18,10 +20,10 @@ $writer->addTransaction(
 );
 
 $writer->addTransaction(
-    (new Transaction(Types::BANK))
+    (new Transaction(Types::Bank))
         ->setDate(new DateTimeImmutable('2026-01-31'))
         ->setDescription('Acme Corp')
-        ->setAmount(2400)
+        ->setAmount('2,400.00')
         ->setCategory('Income:Salary')
 );
 

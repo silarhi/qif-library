@@ -1,9 +1,14 @@
+!Account
+NChecking
+TBank
+^
 !Type:Bank
 D03/01/2026
 T-1,250.00
 CX
 PExample Property Rentals
 A12 Sample Street
+ASpringfield
 MJanuary rent
 LHousing:Rent
 ^

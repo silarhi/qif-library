@@ -5,16 +5,26 @@ sidebar:
     order: 3
 ---
 
-The library throws PHP's own exceptions: `RuntimeException` for files, `Exception` for splits.
+The library throws `Silarhi\Qif\Exception\ParseException` (a `RuntimeException`) on QIF content it cannot read without
+guessing, and PHP's own exceptions otherwise: `RuntimeException` for files, `InvalidArgumentException` for string
+amounts.
 
-| Method                    | Exception          | Message                                              | When                                       |
-| ------------------------- | ------------------ | ---------------------------------------------------- | ------------------------------------------ |
-| `Parser::parseFile()`     | `RuntimeException` | `File not found or not readable: {path}`             | The file is missing or not readable        |
-| `Parser::parseFile()`     | `RuntimeException` | `Failed to read file: {path}`                        | Reading the file fails                     |
-| `Parser::parse()`         | `RuntimeException` | `Failed to clean file content`                       | Removing the UTF-8 BOM fails (PCRE error)  |
-| `Writer::saveToFile()`    | `RuntimeException` | `Directory not writable: {directory}`                | The directory of the file is not writable  |
-| `Writer::saveToFile()`    | `RuntimeException` | `Unable to open file: {path}`                        | The file cannot be opened for writing      |
-| `Transaction::addSplit()` | `Exception`        | `Split "{name}" already exists in this transaction.` | The transaction has a split with that name |
+| Method                                   | Exception                  | Message                                                                                                                    | When                                                             |
+| ---------------------------------------- | -------------------------- | -------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| `Parser::parseFile()`                    | `RuntimeException`         | `File not found or not readable: {path}`                                                                                   | The file is missing or not readable                              |
+| `Parser::parseFile()`                    | `RuntimeException`         | `Failed to read file: {path}`                                                                                              | Reading the file fails                                           |
+| `Parser::parse()`                        | `RuntimeException`         | `Failed to clean file content`                                                                                             | Removing the UTF-8 BOM fails (PCRE error)                        |
+| `Parser::parse()`                        | `ParseException`           | `"{date}" is not a valid date with the day first (DateFormat::DayFirst).`                                                  | A `D` value that is not a date, or does not exist (`31/02`)      |
+| `Parser::parse()`                        | `ParseException`           | `"{date}" is not a valid date with the month first (DateFormat::MonthFirst).`                                              | The same, with `DateFormat::MonthFirst`                          |
+| `Parser::parse()`                        | `ParseException`           | `"{amount}" is not an amount.`                                                                                             | A `T`, `U` or `$` value that is not a number                     |
+| `Parser::parse()`                        | `ParseException`           | `"{amount}" is ambiguous: "{separator}" can be a decimal or a thousands separator. Pass the decimal separator explicitly.` | An amount like `1,234`, without `DecimalSeparator`               |
+| `Parser::parse()`                        | `ParseException`           | `"{amount}" is not an amount with "{separator}" as decimal separator.`                                                     | Two decimal separators, or a thousands separator after it        |
+| `Parser::parse()`                        | `ParseException`           | `"{amount}" does not group its thousands by "{separator}".`                                                                | Thousands not grouped by 3 (`1,23,456`), or the other convention |
+| `Parser::parse()`                        | `ParseException`           | `The split "{category}" has no amount ($ line).`                                                                           | An `S` line without `$` line                                     |
+| `Writer::saveToFile()`                   | `RuntimeException`         | `Directory not writable: {directory}`                                                                                      | The directory of the file is not writable                        |
+| `Writer::saveToFile()`                   | `RuntimeException`         | `Unable to open file: {path}`                                                                                              | The file cannot be opened for writing                            |
+| `Transaction::setAmount()`, `addSplit()` | `InvalidArgumentException` | The amount messages above                                                                                                  | A string that is not an amount or is ambiguous (`'1,234'`)       |
 
-`Parser::parseFile()` also throws what `parse()` throws. Malformed QIF content never throws: see
+`Parser::parseFile()` also throws what `parse()` throws. In the amount messages, `{amount}` is the value without its
+spaces. The other malformed content does not throw: see
 [What does not throw](/guides/error-handling/#what-does-not-throw).

@@ -16,7 +16,7 @@ transaction, so they chain:
 use Silarhi\Qif\Enums\Types;
 use Silarhi\Qif\Transaction;
 
-$transaction = (new Transaction(Types::CASH))
+$transaction = (new Transaction(Types::Cash))
     ->setDate(new DateTimeImmutable('2019-12-31'))
     ->setDescription('INV666')
     ->setAmount(18.99)
@@ -26,24 +26,29 @@ $transaction = (new Transaction(Types::CASH))
     ->markAsReconciled();
 ```
 
-| Method                                                                          | Sets                                                 |
-| ------------------------------------------------------------------------------- | ---------------------------------------------------- |
-| `setDate(DateTimeImmutable $date)`                                              | The date (`D`)                                       |
-| `setAmount(float\|int\|string $float)`                                          | The amount (`T`), cast to `float`                    |
-| `setDescription(?string $description)`                                          | The payee (`P`)                                      |
-| `setCategory(?string $category)`                                                | The category (`L`), e.g. `Housing:Rent`              |
-| `addSplit(string $splitName, float\|int\|string $amount, ?string $memo = null)` | A split: category (`S`), amount (`$`) and memo (`E`) |
-| `removeSplit(string $splitName)`                                                | Removes a split, if there is one with that name      |
-| `setStatus(Status $status)`                                                     | The cleared status (`C`)                             |
-| `markAsReconciled()`                                                            | `setStatus(Status::RECONCILED)`                      |
-| `markAsCleared()`                                                               | `setStatus(Status::CLEARED)`                         |
-| `markAsNotCleared()`                                                            | `setStatus(Status::NOT_CLEARED)`, the default        |
-| `setMemo(?string $memo)`                                                        | The memo: kept on the object, not written            |
-| `setAddress(?string $address)`                                                  | The address: kept on the object, not written         |
+| Method                                                                         | Sets                                                      |
+| ------------------------------------------------------------------------------ | --------------------------------------------------------- |
+| `setDate(DateTimeImmutable $date)`                                             | The date (`D`)                                            |
+| `setAmount(float\|int\|string $float)`                                         | The amount (`T`): see [String amounts](#string-amounts)   |
+| `setDescription(?string $description)`                                         | The payee (`P`)                                           |
+| `setCategory(?string $category)`                                               | The category (`L`), e.g. `Housing:Rent`                   |
+| `addSplit(string $category, float\|int\|string $amount, ?string $memo = null)` | Adds a split: category (`S`), amount (`$`) and memo (`E`) |
+| `removeSplit(string $category)`                                                | Removes every split of the category                       |
+| `setStatus(Status $status)`                                                    | The cleared status (`C`)                                  |
+| `markAsReconciled()`                                                           | `setStatus(Status::Reconciled)`                           |
+| `markAsCleared()`                                                              | `setStatus(Status::Cleared)`                              |
+| `markAsNotCleared()`                                                           | `setStatus(Status::NotCleared)`, the default              |
+| `setMemo(?string $memo)`                                                       | The memo (`M`)                                            |
+| `setAddress(?string $address)`                                                 | The address (`A`), its lines separated by `"\n"`          |
 
-Splits are keyed by their category name: `addSplit()` throws an `Exception` when the transaction already has a split
-with that name. String amounts are cast with `(float)`, which stops at the first character that is not part of a
-number: pass `'1234.50'`, not `'1,234.50'` (read as `1.0`).
+Splits are a list: several splits can share a category, and `addSplit()` adds one at the end each time.
+
+### String amounts
+
+`setAmount()` and `addSplit()` take a `float`, an `int` or a string. A string is read like the amounts of a QIF file,
+its decimal separator detected: `'1,234.50'` and `'1.234,50'` are both `1234.5`, `'12,50'` is `12.5`. A string that is
+not an amount (`'12 EUR'`) or is ambiguous (`'1,234'`: `1234` or `1.234`) throws an `InvalidArgumentException`. See
+[Amounts](/guides/parsing/#amounts).
 
 ## Write them
 
@@ -61,26 +66,29 @@ directory is not writable or the file cannot be opened: see [Error handling](/gu
 
 ## Output format
 
-The writer outputs the type, date (`d/m/Y`), amount, category, splits, cleared status and payee of each transaction,
-in this order, then `^`:
+The writer outputs the type, date (`d/m/Y`), amount, category, splits, cleared status, payee, address and memo of
+each transaction, in this order, then `^`:
 
 - every transaction starts with its own `!Type:` line, empty when the type is `null`;
 - `null` fields are left out, empty strings are written (a bare `P` line);
-- the `C` line is always written, empty for `Status::NOT_CLEARED`, `c` for `CLEARED` and `X` for `RECONCILED`;
+- each split is written as its `S` line, its `$` line, then its `E` line when it has a memo;
+- the `C` line is always written, empty for `Status::NotCleared`, `c` for `Cleared` and `X` for `Reconciled`;
+- the address is written as one `A` line per line (`"\n"`, `"\r\n"` or `"\r"`);
 - amounts use PHP's float to string conversion: `2400`, `-84.3`, no thousands separator;
 - lines end with `PHP_EOL`, and there is no line break after the last `^`.
 
-The memo, the address and every other field are not written. Each transaction is a `Stringable` too: `(string) $transaction`
-returns its own record.
+Each transaction is a `Stringable` too: `(string) $transaction` returns its own record.
 
 :::note[Dates are day first]
-The writer formats dates as `d/m/Y`, the way the [parser](/guides/parsing/#dates) reads them. Make sure the
-application importing the file expects that order.
+The writer formats dates as `d/m/Y`, the way the [parser](/guides/parsing/#dates) reads them by default: parse the
+files it writes with `DateFormat::DayFirst`, and make sure the application importing them expects that order.
 :::
 
 ## Round trip
 
-A parsed transaction can be written back as is. What the writer leaves out is lost: here the memo, the address and the
-splits of `export.qif` (the parser does not read the splits), and the amounts lose their formatting:
+The writer outputs every field the parser reads, so a parsed transaction can be written back as is and parses back to
+the same values. Only the formatting changes: the amounts lose their thousands separators, the `*` cleared status
+becomes `c`, each record gets its own `!Type:` line, the lines follow the writer's order, and the `!Account` list of
+`export.qif` is not written:
 
 <Example name="round-trip" input="export.qif" />
