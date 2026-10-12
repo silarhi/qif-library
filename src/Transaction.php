@@ -17,6 +17,7 @@ use function array_key_exists;
 
 use DateTimeImmutable;
 use Exception;
+use Silarhi\Qif\Enums\DetailItems;
 use Silarhi\Qif\Enums\Status;
 use Silarhi\Qif\Enums\Types;
 
@@ -140,23 +141,23 @@ class Transaction implements Stringable
         $output = '!Type:' . $this->type?->value;
 
         if (null !== $this->date) {
-            $output .= \PHP_EOL . 'D' . $this->date->format('d/m/Y');
+            $output .= \PHP_EOL . DetailItems::D->value . $this->date->format('d/m/Y');
         }
         if (null !== $this->amount) {
-            $output .= \PHP_EOL . 'T' . $this->amount;
+            $output .= \PHP_EOL . DetailItems::T->value . $this->amount;
         }
         if (null !== $this->category) {
-            $output .= \PHP_EOL . 'L' . $this->category;
+            $output .= \PHP_EOL . DetailItems::L->value . $this->category;
         }
         foreach ($this->splits as $name => $split) {
-            $output .= \PHP_EOL . 'S' . $name . \PHP_EOL . '$' . $split['amount'];
+            $output .= \PHP_EOL . DetailItems::S->value . $name . \PHP_EOL . DetailItems::AMNT->value . $split['amount'];
             if (null !== $split['memo']) {
-                $output .= \PHP_EOL . 'E' . $split['memo'];
+                $output .= \PHP_EOL . DetailItems::E->value . $split['memo'];
             }
         }
-        $output .= \PHP_EOL . 'C' . $this->status->value;
+        $output .= \PHP_EOL . DetailItems::C->value . $this->status->value;
         if (null !== $this->description) {
-            $output .= \PHP_EOL . 'P' . $this->description;
+            $output .= \PHP_EOL . DetailItems::P->value . $this->description;
         }
 
         return $output . \PHP_EOL . '^';
