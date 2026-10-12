@@ -19,16 +19,16 @@ namespace Silarhi\Qif\Enums;
 enum DecimalSeparator: string
 {
     /** 1,234.50 */
-    case POINT = '.';
+    case Point = '.';
 
     /** 1.234,50 */
-    case COMMA = ',';
+    case Comma = ',';
 
     public function thousandsSeparator(): string
     {
         return match ($this) {
-            self::POINT => ',',
-            self::COMMA => '.',
+            self::Point => ',',
+            self::Comma => '.',
         };
     }
 }

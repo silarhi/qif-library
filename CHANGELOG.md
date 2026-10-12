@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- `DateFormat` option of `Parser` and `Parser::parseFile()`: `DAY_FIRST` (`25/12/2023`, the default) or `MONTH_FIRST` (`12/25/2023`, US versions of Quicken). ISO dates are read with either.
+- `DateFormat` option of `Parser` and `Parser::parseFile()`: `DayFirst` (`25/12/2023`, the default) or `MonthFirst` (`12/25/2023`, US versions of Quicken). ISO dates are read with either.
 - `DecimalSeparator` option of `Parser` and `Parser::parseFile()`: `POINT` (`1,234.50`) or `COMMA` (`1.234,50`). By default the separator is detected for each amount.
 - `Silarhi\Qif\Exception\ParseException`, a `RuntimeException` thrown on values that cannot be read without guessing.
 
@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **BC break:** `Transaction::getSplits()` returns a list of `['category' => string, 'amount' => float, 'memo' => ?string]` instead of an array keyed by category, as QIF files can contain several splits with the same category. `addSplit()` no longer throws on a duplicate category and its first parameter is renamed `$category`; `removeSplit()` removes every split of the category.
 - **BC break:** the parser throws a `ParseException` instead of storing a wrong or missing value:
-    - on a date that does not exist (`31/02/2023` was read as 3 March, and the US date `01/31/2026` as 1 July 2028) or cannot be read (the date was null). Pass `DateFormat::MONTH_FIRST` for month-first files;
+    - on a date that does not exist (`31/02/2023` was read as 3 March, and the US date `01/31/2026` as 1 July 2028) or cannot be read (the date was null). Pass `DateFormat::MonthFirst` for month-first files;
     - on an amount that is not a number (`12 EUR` was read as `12.0`) or is ambiguous (`1,234`: `1234` or `1.234`). Pass a `DecimalSeparator` to read such files;
     - on a split without amount (`$` line).
 - **BC break:** `Transaction::setAmount()` and `addSplit()` read string amounts with thousands separators (`'1,234.50'` was stored as `1.0`) and throw an `InvalidArgumentException` on a string that is not an amount (stored as `0.0`) or is ambiguous (`'1,234'`).

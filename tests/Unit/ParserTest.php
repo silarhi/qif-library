@@ -458,7 +458,7 @@ QIF;
         file_put_contents($file, "!Type:Bank\nD12/25/2023\nT1.234\n^\n");
 
         try {
-            $transaction = Parser::parseFile($file, DateFormat::MONTH_FIRST, DecimalSeparator::COMMA)->getTransactions()[0];
+            $transaction = Parser::parseFile($file, DateFormat::MonthFirst, DecimalSeparator::Comma)->getTransactions()[0];
         } finally {
             unlink($file);
         }
@@ -487,8 +487,8 @@ QIF;
     {
         $qifContent = "!Type:Bank\nT1,234\n^";
 
-        self::assertSame(1234.0, (new Parser($qifContent, "\n", decimalSeparator: DecimalSeparator::POINT))->parse()[0]->getAmount());
-        self::assertSame(1.234, (new Parser($qifContent, "\n", decimalSeparator: DecimalSeparator::COMMA))->parse()[0]->getAmount());
+        self::assertSame(1234.0, (new Parser($qifContent, "\n", decimalSeparator: DecimalSeparator::Point))->parse()[0]->getAmount());
+        self::assertSame(1.234, (new Parser($qifContent, "\n", decimalSeparator: DecimalSeparator::Comma))->parse()[0]->getAmount());
     }
 
     public function testParseInvalidAmountThrows(): void
@@ -576,7 +576,7 @@ QIF;
 
     public function testParseIsoDate(): void
     {
-        $transactions = (new Parser("!Type:Bank\nD2023-12-25\n^", "\n", DateFormat::MONTH_FIRST))->parse();
+        $transactions = (new Parser("!Type:Bank\nD2023-12-25\n^", "\n", DateFormat::MonthFirst))->parse();
 
         self::assertSame('2023-12-25', $transactions[0]->getDate()?->format('Y-m-d'));
     }
@@ -590,7 +590,7 @@ QIF;
 
     public function testParseMonthFirstDate(): void
     {
-        $transactions = (new Parser("!Type:Bank\nD01/31/2026\n^\nD12/25'23\n^", "\n", DateFormat::MONTH_FIRST))->parse();
+        $transactions = (new Parser("!Type:Bank\nD01/31/2026\n^\nD12/25'23\n^", "\n", DateFormat::MonthFirst))->parse();
 
         self::assertSame('2026-01-31', $transactions[0]->getDate()?->format('Y-m-d'));
         self::assertSame('2023-12-25', $transactions[1]->getDate()?->format('Y-m-d'));
@@ -599,7 +599,7 @@ QIF;
     public function testParseMonthFirstDateWithDayFirstFormatThrows(): void
     {
         $this->expectException(ParseException::class);
-        $this->expectExceptionMessage('"01/31/2026" is not a valid date with the day first (DateFormat::DAY_FIRST).');
+        $this->expectExceptionMessage('"01/31/2026" is not a valid date with the day first (DateFormat::DayFirst).');
 
         (new Parser("!Type:Bank\nD01/31/2026\n^", "\n"))->parse();
     }
