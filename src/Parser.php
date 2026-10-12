@@ -48,7 +48,7 @@ class Parser
     public function __construct(
         private readonly string $fileContent,
         private readonly string $separator = "\r\n",
-        private readonly DateFormat $dateFormat = DateFormat::DAY_FIRST,
+        private readonly DateFormat $dateFormat = DateFormat::DayFirst,
         private readonly ?DecimalSeparator $decimalSeparator = null,
     ) {
     }
@@ -58,7 +58,7 @@ class Parser
      *
      * @throws ParseException when a value cannot be read without guessing
      */
-    public static function parseFile(string $filePath, DateFormat $dateFormat = DateFormat::DAY_FIRST, ?DecimalSeparator $decimalSeparator = null): self
+    public static function parseFile(string $filePath, DateFormat $dateFormat = DateFormat::DayFirst, ?DecimalSeparator $decimalSeparator = null): self
     {
         if (!is_readable($filePath)) {
             throw new RuntimeException("File not found or not readable: {$filePath}");
@@ -253,6 +253,6 @@ class Parser
             }
         }
 
-        throw new ParseException(sprintf('"%s" is not a valid date with %s (DateFormat::%s).', $value, DateFormat::DAY_FIRST === $this->dateFormat ? 'the day first' : 'the month first', $this->dateFormat->name));
+        throw new ParseException(sprintf('"%s" is not a valid date with %s (DateFormat::%s).', $value, DateFormat::DayFirst === $this->dateFormat ? 'the day first' : 'the month first', $this->dateFormat->name));
     }
 }

@@ -17,7 +17,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### Enums
 
 - **DetailItems** (`src/Enums/DetailItems.php`): Backed string enum defining all QIF field codes (D for date, T for amount, M for memo, etc.)
-- **DateFormat** (`src/Enums/DateFormat.php`): Parser option, `DAY_FIRST` (default) or `MONTH_FIRST` slash dates
+- **DateFormat** (`src/Enums/DateFormat.php`): Parser option, `DayFirst` (default) or `MonthFirst` slash dates
 - **DecimalSeparator** (`src/Enums/DecimalSeparator.php`): Parser option, `POINT` or `COMMA`; null (default) detects it per amount
 - **Types** (`src/Enums/Types.php`): Backed string enum for QIF transaction types (Cash, Bank, CCard, Invst, etc.)
 - **Status** (`src/Enums/Status.php`): Backed string enum for the cleared status (`NOT_CLEARED` = '', `CLEARED` = 'c', `RECONCILED` = 'X')

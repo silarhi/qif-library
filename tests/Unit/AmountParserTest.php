@@ -59,11 +59,11 @@ final class AmountParserTest extends TestCase
      */
     public static function provideExplicitAmounts(): iterable
     {
-        yield 'point: comma thousands' => ['1,234', DecimalSeparator::POINT, 1234.0];
-        yield 'point: plain' => ['-1234.50', DecimalSeparator::POINT, -1234.5];
-        yield 'comma: point thousands' => ['1.234', DecimalSeparator::COMMA, 1234.0];
-        yield 'comma: decimals' => ['1,234', DecimalSeparator::COMMA, 1.234];
-        yield 'comma: both' => ['-1.234.567,89', DecimalSeparator::COMMA, -1234567.89];
+        yield 'point: comma thousands' => ['1,234', DecimalSeparator::Point, 1234.0];
+        yield 'point: plain' => ['-1234.50', DecimalSeparator::Point, -1234.5];
+        yield 'comma: point thousands' => ['1.234', DecimalSeparator::Comma, 1234.0];
+        yield 'comma: decimals' => ['1,234', DecimalSeparator::Comma, 1.234];
+        yield 'comma: both' => ['-1.234.567,89', DecimalSeparator::Comma, -1234567.89];
     }
 
     #[DataProvider('provideExplicitAmounts')]
@@ -84,9 +84,9 @@ final class AmountParserTest extends TestCase
         yield 'ambiguous negative comma' => ['-12,345', null];
         yield 'two decimal separators' => ['1.234,567.89', null];
         yield 'misgrouped thousands' => ['12,34.50', null];
-        yield 'comma convention read as point' => ['1.234,50', DecimalSeparator::POINT];
-        yield 'point convention read as comma' => ['1,234.50', DecimalSeparator::COMMA];
-        yield 'plain amount read as comma' => ['1234.50', DecimalSeparator::COMMA];
+        yield 'comma convention read as point' => ['1.234,50', DecimalSeparator::Point];
+        yield 'point convention read as comma' => ['1,234.50', DecimalSeparator::Comma];
+        yield 'plain amount read as comma' => ['1234.50', DecimalSeparator::Comma];
     }
 
     #[DataProvider('provideInvalidAmounts')]

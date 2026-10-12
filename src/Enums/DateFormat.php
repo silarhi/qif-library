@@ -20,10 +20,10 @@ namespace Silarhi\Qif\Enums;
 enum DateFormat
 {
     /** 25/12/2023, 25/12/23, 25/12'23 */
-    case DAY_FIRST;
+    case DayFirst;
 
     /** 12/25/2023, 12/25/23, 12/25'23 (US versions of Quicken) */
-    case MONTH_FIRST;
+    case MonthFirst;
 
     /**
      * Formats to try in order: two-digit years first, as "Y" also matches a two-digit year.
@@ -33,8 +33,8 @@ enum DateFormat
     public function formats(): array
     {
         return match ($this) {
-            self::DAY_FIRST => ['d/m/y', 'y-m-d', 'd/m/Y', 'Y-m-d'],
-            self::MONTH_FIRST => ['m/d/y', 'y-m-d', 'm/d/Y', 'Y-m-d'],
+            self::DayFirst => ['d/m/y', 'y-m-d', 'd/m/Y', 'Y-m-d'],
+            self::MonthFirst => ['m/d/y', 'y-m-d', 'm/d/Y', 'Y-m-d'],
         };
     }
 }
