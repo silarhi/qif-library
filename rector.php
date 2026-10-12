@@ -5,7 +5,6 @@ declare(strict_types=1);
 /*
  * This file is part of the QIF Library package.
  *
- * (c) Mário Čechovič <mimographix@gmail.com>
  * (c) SILARHI <dev@silarhi.fr>
  *
  * This source file is subject to the MIT license that is bundled

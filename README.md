@@ -5,7 +5,7 @@ A simple QIF parsing/writing library.
 ## Installation
 
 ```bash
-composer require mimographix/qif-library
+composer require silarhi/qif-library
 ```
 
 ## Usage
@@ -14,7 +14,7 @@ composer require mimographix/qif-library
 
 ```php
 // Instatiate the QIF Parser
-$qifParser = new MimoGraphix\QIF\Parser( $filePath );
+$qifParser = new Silarhi\Qif\Parser( $filePath );
 $qifParser->parse();
 
 foreach( $qifParser->getTransactions() as $transaction )
@@ -27,7 +27,7 @@ foreach( $qifParser->getTransactions() as $transaction )
 
 ```php
 // Instatiate the QIF Writer
-$qif = new MimoGraphix\QIF\Writer();
+$qif = new Silarhi\Qif\Writer();
 
 // Create a new transaction
 $transaction = new Transaction( Enums\Types::CASH );

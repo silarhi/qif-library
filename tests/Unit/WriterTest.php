@@ -5,22 +5,21 @@ declare(strict_types=1);
 /*
  * This file is part of the QIF Library package.
  *
- * (c) Mário Čechovič <mimographix@gmail.com>
  * (c) SILARHI <dev@silarhi.fr>
  *
  * This source file is subject to the MIT license that is bundled
  * with this source code in the file LICENSE.
  */
 
-namespace MimoGraphix\QIF\Tests\Unit;
+namespace Silarhi\Qif\Tests\Unit;
 
 use DateTimeImmutable;
-use MimoGraphix\QIF\Enums\Types;
-use MimoGraphix\QIF\Transaction;
-use MimoGraphix\QIF\Writer;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
+use Silarhi\Qif\Enums\Types;
+use Silarhi\Qif\Transaction;
+use Silarhi\Qif\Writer;
 use Stringable;
 
 #[CoversClass(Writer::class)]

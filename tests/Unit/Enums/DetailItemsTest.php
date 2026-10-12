@@ -5,18 +5,17 @@ declare(strict_types=1);
 /*
  * This file is part of the QIF Library package.
  *
- * (c) Mário Čechovič <mimographix@gmail.com>
  * (c) SILARHI <dev@silarhi.fr>
  *
  * This source file is subject to the MIT license that is bundled
  * with this source code in the file LICENSE.
  */
 
-namespace MimoGraphix\QIF\Tests\Unit\Enums;
+namespace Silarhi\Qif\Tests\Unit\Enums;
 
-use MimoGraphix\QIF\Enums\DetailItems;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
+use Silarhi\Qif\Enums\DetailItems;
 
 #[CoversClass(DetailItems::class)]
 final class DetailItemsTest extends TestCase

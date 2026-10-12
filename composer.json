@@ -1,7 +1,6 @@
 {
-  "name": "mimographix/qif-library",
-  "description": "A simple QIF parsing/writing library.",
-  "version": "1.0.0",
+  "name": "silarhi/qif-library",
+  "description": "A PHP library to parse and write QIF (Quicken Interchange Format) files",
   "type": "library",
   "keywords": [
     "qif",
@@ -11,18 +10,18 @@
   "license": "MIT",
   "authors": [
     {
-      "name": "MimoGraphix",
-      "email": "mimographix@gmail.com"
+      "name": "SILARHI",
+      "email": "hello@silarhi.fr"
     }
   ],
   "autoload": {
     "psr-4": {
-      "MimoGraphix\\QIF\\": "src/"
+      "Silarhi\\Qif\\": "src/"
     }
   },
   "autoload-dev": {
     "psr-4": {
-      "MimoGraphix\\QIF\\Tests\\": "tests/"
+      "Silarhi\\Qif\\Tests\\": "tests/"
     }
   },
   "require": {
