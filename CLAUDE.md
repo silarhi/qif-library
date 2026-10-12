@@ -18,6 +18,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - **DetailItems** (`src/Enums/DetailItems.php`): Backed string enum defining all QIF field codes (D for date, T for amount, M for memo, etc.)
 - **Types** (`src/Enums/Types.php`): Backed string enum for QIF transaction types (Cash, Bank, CCard, Invst, etc.)
+- **Status** (`src/Enums/Status.php`): Backed string enum for the cleared status (`NOT_CLEARED` = '', `CLEARED` = 'c', `RECONCILED` = 'X')
 
 ### Key Design Patterns
 
