@@ -23,17 +23,17 @@ final class StatusTest extends TestCase
 {
     public function testNotClearedValue(): void
     {
-        self::assertSame('', Status::NOT_CLEARED->value);
+        self::assertSame('', Status::NotCleared->value);
     }
 
     public function testClearedValue(): void
     {
-        self::assertSame('c', Status::CLEARED->value);
+        self::assertSame('c', Status::Cleared->value);
     }
 
     public function testReconciledValue(): void
     {
-        self::assertSame('X', Status::RECONCILED->value);
+        self::assertSame('X', Status::Reconciled->value);
     }
 
     public function testAllCasesExist(): void
@@ -41,16 +41,16 @@ final class StatusTest extends TestCase
         $cases = Status::cases();
 
         self::assertCount(3, $cases);
-        self::assertContains(Status::NOT_CLEARED, $cases);
-        self::assertContains(Status::CLEARED, $cases);
-        self::assertContains(Status::RECONCILED, $cases);
+        self::assertContains(Status::NotCleared, $cases);
+        self::assertContains(Status::Cleared, $cases);
+        self::assertContains(Status::Reconciled, $cases);
     }
 
     public function testTryFromValidValues(): void
     {
-        self::assertSame(Status::NOT_CLEARED, Status::tryFrom(''));
-        self::assertSame(Status::CLEARED, Status::tryFrom('c'));
-        self::assertSame(Status::RECONCILED, Status::tryFrom('X'));
+        self::assertSame(Status::NotCleared, Status::tryFrom(''));
+        self::assertSame(Status::Cleared, Status::tryFrom('c'));
+        self::assertSame(Status::Reconciled, Status::tryFrom('X'));
     }
 
     #[DataProvider('provideInvalidValues')]

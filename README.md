@@ -42,9 +42,13 @@
 
 ## Features
 
-- **Parser**: reads the date, amount, memo, cleared status, payee, address and category of every transaction
-- **Writer**: builds QIF output from `Transaction` objects, including split transactions
+- **Parser**: reads the date, amount, memo, cleared status, payee, address, category and splits of every transaction
+- **Writer**: builds QIF output from `Transaction` objects, splits, memo and address included
 - **Typed results**: dates as `DateTimeImmutable`, amounts as `float`, account types and cleared status as enums
+- **No silent guesses**: impossible dates (`31/02/2023`) and ambiguous amounts (`1,234`) throw a `ParseException`
+  instead of being rolled over or misread
+- **Both number conventions**: `1,234.50` and `1.234,50`, detected per amount or set explicitly
+- **Day- or month-first dates**: `d/m/Y` by default, `m/d/Y` on demand, ISO dates always
 - **No dependencies**: plain PHP, Windows and Unix line endings, UTF-8 BOM stripped
 
 ## Requirements
@@ -75,7 +79,7 @@ foreach (Parser::parseFile('/path/to/export.qif')->getTransactions() as $transac
 // Write
 $writer = new Writer();
 $writer->addTransaction(
-    (new Transaction(Types::BANK))
+    (new Transaction(Types::Bank))
         ->setDate(new DateTimeImmutable('2026-01-31'))
         ->setDescription('Acme Corp')
         ->setAmount(2400)
@@ -89,11 +93,12 @@ $writer->saveToFile('/path/to/export.qif');
 Everything else is on **[qif-library.silarhi.dev](https://qif-library.silarhi.dev)**:
 
 - [Installation](https://qif-library.silarhi.dev/getting-started/installation/) and [quick start](https://qif-library.silarhi.dev/getting-started/quick-start/)
-- Guides: [parsing QIF files](https://qif-library.silarhi.dev/guides/parsing/), [writing QIF files](https://qif-library.silarhi.dev/guides/writing/),
+- Guides: [parsing QIF files](https://qif-library.silarhi.dev/guides/parsing/) (with [dates](https://qif-library.silarhi.dev/guides/parsing/#dates)
+  and [amounts](https://qif-library.silarhi.dev/guides/parsing/#amounts)), [writing QIF files](https://qif-library.silarhi.dev/guides/writing/),
   [error handling](https://qif-library.silarhi.dev/guides/error-handling/)
 - Reference: [classes](https://qif-library.silarhi.dev/reference/classes/), [enums and QIF fields](https://qif-library.silarhi.dev/reference/enums/),
   [exceptions](https://qif-library.silarhi.dev/reference/exceptions/)
-- [Upgrading](https://qif-library.silarhi.dev/upgrading/) from `mimographix/qif-library` or from 1.x
+- [Upgrading](https://qif-library.silarhi.dev/upgrading/) from `mimographix/qif-library`, 1.x or 2.x
 
 ## Contributing
 

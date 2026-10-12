@@ -13,16 +13,14 @@ declare(strict_types=1);
 
 namespace Silarhi\Qif;
 
-use function array_key_exists;
-
 use DateTimeImmutable;
-use Exception;
+use InvalidArgumentException;
+
+use function is_string;
+
 use Silarhi\Qif\Enums\DetailItems;
 use Silarhi\Qif\Enums\Status;
 use Silarhi\Qif\Enums\Types;
-
-use function sprintf;
-
 use Stringable;
 
 class Transaction implements Stringable
@@ -36,7 +34,7 @@ class Transaction implements Stringable
     private ?string $category = null;
 
     /**
-     * @var array<string, array{amount: float, memo: ?string}>
+     * @var list<array{category: string, amount: float, memo: ?string}>
      */
     private array $splits = [];
 
@@ -53,7 +51,7 @@ class Transaction implements Stringable
 
     public function __construct(private readonly ?Types $type)
     {
-        $this->status = Status::NOT_CLEARED;
+        $this->status = Status::NotCleared;
     }
 
     public function setDate(DateTimeImmutable $date): self
@@ -70,9 +68,14 @@ class Transaction implements Stringable
         return $this;
     }
 
+    /**
+     * @param float|int|string $float a string can group thousands, in either convention ("1,234.50" or "1.234,50")
+     *
+     * @throws InvalidArgumentException when the string is not an amount or is ambiguous ("1,234")
+     */
     public function setAmount(float|int|string $float): self
     {
-        $this->amount = (float) $float;
+        $this->amount = is_string($float) ? AmountParser::parse($float) : (float) $float;
 
         return $this;
     }
@@ -85,25 +88,32 @@ class Transaction implements Stringable
     }
 
     /**
-     * @throws Exception
+     * Adds a split line. Several splits can share a category.
+     *
+     * @param float|int|string $amount a string can group thousands, in either convention ("1,234.50" or "1.234,50")
+     *
+     * @throws InvalidArgumentException when the string is not an amount or is ambiguous ("1,234")
      */
-    public function addSplit(string $splitName, float|int|string $amount, ?string $memo = null): self
+    public function addSplit(string $category, float|int|string $amount, ?string $memo = null): self
     {
-        if (array_key_exists($splitName, $this->splits)) {
-            throw new Exception(sprintf('Split "%s" already exists in this transaction.', $splitName));
-        }
-
-        $this->splits[$splitName] = [
-            'amount' => (float) $amount,
+        $this->splits[] = [
+            'category' => $category,
+            'amount' => is_string($amount) ? AmountParser::parse($amount) : (float) $amount,
             'memo' => $memo,
         ];
 
         return $this;
     }
 
-    public function removeSplit(string $splitName): self
+    /**
+     * Removes every split of this category.
+     */
+    public function removeSplit(string $category): self
     {
-        unset($this->splits[$splitName]);
+        $this->splits = array_values(array_filter(
+            $this->splits,
+            static fn (array $split): bool => $split['category'] !== $category,
+        ));
 
         return $this;
     }
@@ -117,21 +127,21 @@ class Transaction implements Stringable
 
     public function markAsReconciled(): self
     {
-        $this->status = Status::RECONCILED;
+        $this->status = Status::Reconciled;
 
         return $this;
     }
 
     public function markAsCleared(): self
     {
-        $this->status = Status::CLEARED;
+        $this->status = Status::Cleared;
 
         return $this;
     }
 
     public function markAsNotCleared(): self
     {
-        $this->status = Status::NOT_CLEARED;
+        $this->status = Status::NotCleared;
 
         return $this;
     }
@@ -141,28 +151,40 @@ class Transaction implements Stringable
         $output = '!Type:' . $this->type?->value;
 
         if (null !== $this->date) {
-            $output .= \PHP_EOL . DetailItems::DATE->value . $this->date->format('d/m/Y');
+            $output .= \PHP_EOL . DetailItems::Date->value . $this->date->format('d/m/Y');
         }
         if (null !== $this->amount) {
-            $output .= \PHP_EOL . DetailItems::AMOUNT->value . $this->amount;
+            $output .= \PHP_EOL . DetailItems::Amount->value . $this->amount;
         }
         if (null !== $this->category) {
-            $output .= \PHP_EOL . DetailItems::CATEGORY->value . $this->category;
+            $output .= \PHP_EOL . DetailItems::Category->value . $this->category;
         }
-        foreach ($this->splits as $name => $split) {
-            $output .= \PHP_EOL . DetailItems::SPLIT_CATEGORY->value . $name . \PHP_EOL . DetailItems::SPLIT_AMOUNT->value . $split['amount'];
+        foreach ($this->splits as $split) {
+            $output .= \PHP_EOL . DetailItems::SplitCategory->value . $split['category'] . \PHP_EOL . DetailItems::SplitAmount->value . $split['amount'];
             if (null !== $split['memo']) {
-                $output .= \PHP_EOL . DetailItems::SPLIT_MEMO->value . $split['memo'];
+                $output .= \PHP_EOL . DetailItems::SplitMemo->value . $split['memo'];
             }
         }
-        $output .= \PHP_EOL . DetailItems::CLEARED_STATUS->value . $this->status->value;
+        $output .= \PHP_EOL . DetailItems::ClearedStatus->value . $this->status->value;
         if (null !== $this->description) {
-            $output .= \PHP_EOL . DetailItems::PAYEE->value . $this->description;
+            $output .= \PHP_EOL . DetailItems::Payee->value . $this->description;
+        }
+        if (null !== $this->address) {
+            // QIF has one A line per address line
+            foreach (explode("\n", str_replace(["\r\n", "\r"], "\n", $this->address)) as $addressLine) {
+                $output .= \PHP_EOL . DetailItems::Address->value . $addressLine;
+            }
+        }
+        if (null !== $this->memo) {
+            $output .= \PHP_EOL . DetailItems::Memo->value . $this->memo;
         }
 
         return $output . \PHP_EOL . '^';
     }
 
+    /**
+     * @param string|null $address the lines of a multi-line address are separated by "\n"
+     */
     public function setAddress(?string $address): self
     {
         $this->address = $address;
@@ -203,7 +225,7 @@ class Transaction implements Stringable
     }
 
     /**
-     * @return array<string, array{amount: float, memo: ?string}>
+     * @return list<array{category: string, amount: float, memo: ?string}>
      */
     public function getSplits(): array
     {
@@ -215,6 +237,9 @@ class Transaction implements Stringable
         return $this->status;
     }
 
+    /**
+     * @return string|null the lines of a multi-line address are separated by "\n"
+     */
     public function getAddress(): ?string
     {
         return $this->address;

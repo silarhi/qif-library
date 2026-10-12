@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Silarhi\Qif\Tests\Unit;
 
 use DateTimeImmutable;
-use Exception;
+use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Silarhi\Qif\Enums\Status;
@@ -26,21 +26,21 @@ final class TransactionTest extends TestCase
 {
     public function testConstructorSetsType(): void
     {
-        $transaction = new Transaction(Types::BANK);
+        $transaction = new Transaction(Types::Bank);
 
-        self::assertSame(Types::BANK, $transaction->getType());
+        self::assertSame(Types::Bank, $transaction->getType());
     }
 
     public function testConstructorSetsDefaultStatus(): void
     {
-        $transaction = new Transaction(Types::BANK);
+        $transaction = new Transaction(Types::Bank);
 
-        self::assertSame(Status::NOT_CLEARED, $transaction->getStatus());
+        self::assertSame(Status::NotCleared, $transaction->getStatus());
     }
 
     public function testSetAndGetDate(): void
     {
-        $transaction = new Transaction(Types::BANK);
+        $transaction = new Transaction(Types::Bank);
         $date = new DateTimeImmutable('2023-12-25');
 
         $result = $transaction->setDate($date);
@@ -51,7 +51,7 @@ final class TransactionTest extends TestCase
 
     public function testSetAndGetDescription(): void
     {
-        $transaction = new Transaction(Types::BANK);
+        $transaction = new Transaction(Types::Bank);
 
         $result = $transaction->setDescription('Test payment');
 
@@ -61,7 +61,7 @@ final class TransactionTest extends TestCase
 
     public function testSetAndGetAmount(): void
     {
-        $transaction = new Transaction(Types::BANK);
+        $transaction = new Transaction(Types::Bank);
 
         $result = $transaction->setAmount(123.45);
 
@@ -71,7 +71,7 @@ final class TransactionTest extends TestCase
 
     public function testSetAmountAcceptsIntAndString(): void
     {
-        $transaction = new Transaction(Types::BANK);
+        $transaction = new Transaction(Types::Bank);
 
         $transaction->setAmount(100);
         self::assertSame(100.0, $transaction->getAmount());
@@ -80,9 +80,38 @@ final class TransactionTest extends TestCase
         self::assertSame(250.75, $transaction->getAmount());
     }
 
+    public function testSetAmountReadsThousandsSeparators(): void
+    {
+        $transaction = new Transaction(Types::Bank);
+
+        $transaction->setAmount('1,234.50');
+        self::assertSame(1234.5, $transaction->getAmount());
+
+        $transaction->setAmount('-1.234,50');
+        self::assertSame(-1234.5, $transaction->getAmount());
+    }
+
+    public function testSetAmountRejectsAmbiguousString(): void
+    {
+        $transaction = new Transaction(Types::Bank);
+
+        $this->expectException(InvalidArgumentException::class);
+
+        $transaction->setAmount('1,234');
+    }
+
+    public function testSetAmountRejectsNonNumericString(): void
+    {
+        $transaction = new Transaction(Types::Bank);
+
+        $this->expectException(InvalidArgumentException::class);
+
+        $transaction->setAmount('twelve');
+    }
+
     public function testSetAndGetCategory(): void
     {
-        $transaction = new Transaction(Types::BANK);
+        $transaction = new Transaction(Types::Bank);
 
         $result = $transaction->setCategory('Fuel:Car');
 
@@ -92,7 +121,7 @@ final class TransactionTest extends TestCase
 
     public function testSetAndGetAddress(): void
     {
-        $transaction = new Transaction(Types::BANK);
+        $transaction = new Transaction(Types::Bank);
 
         $result = $transaction->setAddress('123 Main St');
 
@@ -102,7 +131,7 @@ final class TransactionTest extends TestCase
 
     public function testSetAndGetMemo(): void
     {
-        $transaction = new Transaction(Types::BANK);
+        $transaction = new Transaction(Types::Bank);
 
         $result = $transaction->setMemo('Test memo');
 
@@ -112,100 +141,102 @@ final class TransactionTest extends TestCase
 
     public function testSetStatus(): void
     {
-        $transaction = new Transaction(Types::BANK);
+        $transaction = new Transaction(Types::Bank);
 
-        $result = $transaction->setStatus(Status::CLEARED);
+        $result = $transaction->setStatus(Status::Cleared);
 
         self::assertSame($transaction, $result);
-        self::assertSame(Status::CLEARED, $transaction->getStatus());
+        self::assertSame(Status::Cleared, $transaction->getStatus());
     }
 
     public function testMarkAsReconciled(): void
     {
-        $transaction = new Transaction(Types::BANK);
+        $transaction = new Transaction(Types::Bank);
 
         $result = $transaction->markAsReconciled();
 
         self::assertSame($transaction, $result);
-        self::assertSame(Status::RECONCILED, $transaction->getStatus());
+        self::assertSame(Status::Reconciled, $transaction->getStatus());
     }
 
     public function testMarkAsCleared(): void
     {
-        $transaction = new Transaction(Types::BANK);
+        $transaction = new Transaction(Types::Bank);
 
         $result = $transaction->markAsCleared();
 
         self::assertSame($transaction, $result);
-        self::assertSame(Status::CLEARED, $transaction->getStatus());
+        self::assertSame(Status::Cleared, $transaction->getStatus());
     }
 
     public function testMarkAsNotCleared(): void
     {
-        $transaction = new Transaction(Types::BANK);
+        $transaction = new Transaction(Types::Bank);
         $transaction->markAsReconciled();
 
         $result = $transaction->markAsNotCleared();
 
         self::assertSame($transaction, $result);
-        self::assertSame(Status::NOT_CLEARED, $transaction->getStatus());
+        self::assertSame(Status::NotCleared, $transaction->getStatus());
     }
 
     public function testAddSplit(): void
     {
-        $transaction = new Transaction(Types::BANK);
+        $transaction = new Transaction(Types::Bank);
 
         $result = $transaction->addSplit('Product', 100.50, 'Product sale');
 
         self::assertSame($transaction, $result);
-
-        $splits = $transaction->getSplits();
-        self::assertArrayHasKey('Product', $splits);
-        self::assertSame(100.5, $splits['Product']['amount']);
-        self::assertSame('Product sale', $splits['Product']['memo']);
+        self::assertSame([['category' => 'Product', 'amount' => 100.5, 'memo' => 'Product sale']], $transaction->getSplits());
     }
 
     public function testAddSplitWithNullMemo(): void
     {
-        $transaction = new Transaction(Types::BANK);
+        $transaction = new Transaction(Types::Bank);
 
         $transaction->addSplit('Tax', 20.0);
 
-        $splits = $transaction->getSplits();
-        self::assertArrayHasKey('Tax', $splits);
-        self::assertSame(20.0, $splits['Tax']['amount']);
-        self::assertNull($splits['Tax']['memo']);
+        self::assertSame([['category' => 'Tax', 'amount' => 20.0, 'memo' => null]], $transaction->getSplits());
     }
 
-    public function testAddSplitThrowsExceptionForDuplicateName(): void
+    public function testAddSplitKeepsSplitsOfTheSameCategory(): void
     {
-        $transaction = new Transaction(Types::BANK);
-        $transaction->addSplit('Product', 100.0);
+        $transaction = new Transaction(Types::Bank);
 
-        $this->expectException(Exception::class);
-        $this->expectExceptionMessage('Split "Product" already exists in this transaction.');
+        $transaction->addSplit('Groceries', 30.0, 'Food')
+            ->addSplit('Groceries', 12.5, 'Cleaning');
 
-        $transaction->addSplit('Product', 50.0);
+        self::assertSame([
+            ['category' => 'Groceries', 'amount' => 30.0, 'memo' => 'Food'],
+            ['category' => 'Groceries', 'amount' => 12.5, 'memo' => 'Cleaning'],
+        ], $transaction->getSplits());
+    }
+
+    public function testAddSplitReadsAmountWithThousandsSeparator(): void
+    {
+        $transaction = new Transaction(Types::Bank);
+
+        $transaction->addSplit('Rent', '1,234.50');
+
+        self::assertSame(1234.5, $transaction->getSplits()[0]['amount']);
     }
 
     public function testRemoveSplit(): void
     {
-        $transaction = new Transaction(Types::BANK);
+        $transaction = new Transaction(Types::Bank);
         $transaction->addSplit('Product', 100.0);
         $transaction->addSplit('Tax', 20.0);
+        $transaction->addSplit('Product', 50.0);
 
         $result = $transaction->removeSplit('Product');
 
         self::assertSame($transaction, $result);
-
-        $splits = $transaction->getSplits();
-        self::assertArrayNotHasKey('Product', $splits);
-        self::assertArrayHasKey('Tax', $splits);
+        self::assertSame([['category' => 'Tax', 'amount' => 20.0, 'memo' => null]], $transaction->getSplits());
     }
 
     public function testToStringWithFullTransaction(): void
     {
-        $transaction = new Transaction(Types::BANK);
+        $transaction = new Transaction(Types::Bank);
         $date = new DateTimeImmutable('2023-12-25');
 
         $transaction->setDate($date)
@@ -228,7 +259,7 @@ final class TransactionTest extends TestCase
 
     public function testToStringWithSplits(): void
     {
-        $transaction = new Transaction(Types::BANK);
+        $transaction = new Transaction(Types::Bank);
         $transaction->setAmount(120.0)
             ->addSplit('Product', 100.0, 'Item')
             ->addSplit('Tax', 20.0, 'VAT');
@@ -239,6 +270,27 @@ final class TransactionTest extends TestCase
         self::assertStringContainsString('$100', $output);
         self::assertStringContainsString('STax', $output);
         self::assertStringContainsString('$20', $output);
+        self::assertStringContainsString('EVAT', $output);
+    }
+
+    public function testToStringWritesMemoAndAddress(): void
+    {
+        $transaction = new Transaction(Types::Bank);
+        $transaction->setAmount(-50.0)
+            ->setDescription('Standard Oil')
+            ->setAddress("Standard Oil\n101 Main St.")
+            ->setMemo('Fuel for car');
+
+        self::assertSame(implode(\PHP_EOL, [
+            '!Type:Bank',
+            'T-50',
+            'C',
+            'PStandard Oil',
+            'AStandard Oil',
+            'A101 Main St.',
+            'MFuel for car',
+            '^',
+        ]), (string) $transaction);
     }
 
     public function testToStringWithNullType(): void
@@ -254,7 +306,7 @@ final class TransactionTest extends TestCase
 
     public function testFluentInterface(): void
     {
-        $transaction = new Transaction(Types::CASH);
+        $transaction = new Transaction(Types::Cash);
         $date = new DateTimeImmutable('2023-12-25');
 
         $result = $transaction
