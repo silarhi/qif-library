@@ -90,15 +90,13 @@ vendor/bin/rector process --dry-run
 
 ### QIF Field Parsing
 
-The Parser uses a switch statement matching single-character field codes from DetailItems enum. When adding new field types, update both the enum and the switch statement in `Parser::parse()`.
+The Parser uses a switch statement matching single-character field codes from the DetailItems enum (`case DetailItems::D->value:`). When adding new field types, update both the enum and the switch statement in `Parser::parse()`.
+
+Dates are parsed once per distinct value within a `parse()` call (`$dateCache`), so transactions with the same date string share one `DateTimeImmutable` instance.
 
 ### Transaction Rendering
 
-Transaction objects convert to QIF format via `__toString()`. Private helper methods:
-
-- `renderDateLineIfNotNull()`: Formats date as 'd/m/Y'
-- `renderIfNotNull()`: Conditionally renders field lines
-- `renderSplits()`: Formats split transactions
+Transaction objects convert to QIF format via `__toString()`, which concatenates the field lines directly (no intermediate arrays): null fields are skipped, empty strings are still rendered (e.g. `P` alone), dates are formatted as 'd/m/Y'.
 
 ### Error Handling
 
@@ -129,7 +127,7 @@ The project uses PHPUnit 11 with comprehensive test coverage:
 1. Add enum case to `DetailItems` with backed string value
 2. Update `Parser::parse()` switch statement to handle the field
 3. Add property and getter/setter to `Transaction` if needed
-4. Update `Transaction::__toString()` or render methods to output the field
+4. Update `Transaction::__toString()` to output the field
 5. Write tests in `ParserTest` and `TransactionTest` for the new field
 6. Run PHPStan, PHPUnit, and PHP-CS-Fixer
 
