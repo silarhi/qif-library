@@ -23,57 +23,57 @@ final class DetailItemsTest extends TestCase
 {
     public function testCommonFieldValues(): void
     {
-        self::assertSame('D', DetailItems::D->value);
-        self::assertSame('T', DetailItems::T->value);
-        self::assertSame('U', DetailItems::U->value);
-        self::assertSame('M', DetailItems::M->value);
-        self::assertSame('C', DetailItems::C->value);
+        self::assertSame('D', DetailItems::DATE->value);
+        self::assertSame('T', DetailItems::AMOUNT->value);
+        self::assertSame('U', DetailItems::AMOUNT_ALT->value);
+        self::assertSame('M', DetailItems::MEMO->value);
+        self::assertSame('C', DetailItems::CLEARED_STATUS->value);
     }
 
     public function testBankingFieldValues(): void
     {
-        self::assertSame('N', DetailItems::N->value);
-        self::assertSame('A', DetailItems::A->value);
-        self::assertSame('L', DetailItems::L->value);
-        self::assertSame('P', DetailItems::P->value);
-        self::assertSame('F', DetailItems::F->value);
+        self::assertSame('N', DetailItems::CHECK_NUMBER->value);
+        self::assertSame('A', DetailItems::ADDRESS->value);
+        self::assertSame('L', DetailItems::CATEGORY->value);
+        self::assertSame('P', DetailItems::PAYEE->value);
+        self::assertSame('F', DetailItems::REIMBURSABLE->value);
     }
 
     public function testSplitFieldValues(): void
     {
-        self::assertSame('$', DetailItems::AMNT->value);
-        self::assertSame('S', DetailItems::S->value);
-        self::assertSame('E', DetailItems::E->value);
-        self::assertSame('%', DetailItems::PERC->value);
+        self::assertSame('$', DetailItems::SPLIT_AMOUNT->value);
+        self::assertSame('S', DetailItems::SPLIT_CATEGORY->value);
+        self::assertSame('E', DetailItems::SPLIT_MEMO->value);
+        self::assertSame('%', DetailItems::SPLIT_PERCENT->value);
     }
 
     public function testInvestmentFieldValues(): void
     {
-        self::assertSame('Y', DetailItems::Y->value);
-        self::assertSame('I', DetailItems::I->value);
-        self::assertSame('Q', DetailItems::Q->value);
-        self::assertSame('O', DetailItems::O->value);
+        self::assertSame('Y', DetailItems::SECURITY->value);
+        self::assertSame('I', DetailItems::PRICE->value);
+        self::assertSame('Q', DetailItems::QUANTITY->value);
+        self::assertSame('O', DetailItems::COMMISSION->value);
     }
 
     public function testCategoryFieldValue(): void
     {
-        self::assertSame('B', DetailItems::B->value);
+        self::assertSame('B', DetailItems::BUDGETED_AMOUNT->value);
     }
 
     public function testInvoiceFieldValues(): void
     {
-        self::assertSame('X', DetailItems::X->value);
-        self::assertSame('XA', DetailItems::XA->value);
-        self::assertSame('XI', DetailItems::XI->value);
-        self::assertSame('XE', DetailItems::XE->value);
-        self::assertSame('XC', DetailItems::XC->value);
-        self::assertSame('XR', DetailItems::XR->value);
-        self::assertSame('XT', DetailItems::XT->value);
-        self::assertSame('XS', DetailItems::XS->value);
-        self::assertSame('XN', DetailItems::XN->value);
-        self::assertSame('X#', DetailItems::X_HASH->value);
-        self::assertSame('X$', DetailItems::X_AMNT->value);
-        self::assertSame('XF', DetailItems::XF->value);
+        self::assertSame('X', DetailItems::EXTENDED->value);
+        self::assertSame('XA', DetailItems::INVOICE_SHIP_TO_ADDRESS->value);
+        self::assertSame('XI', DetailItems::INVOICE_TYPE->value);
+        self::assertSame('XE', DetailItems::INVOICE_DUE_DATE->value);
+        self::assertSame('XC', DetailItems::INVOICE_TAX_ACCOUNT->value);
+        self::assertSame('XR', DetailItems::INVOICE_TAX_RATE->value);
+        self::assertSame('XT', DetailItems::INVOICE_TAX_AMOUNT->value);
+        self::assertSame('XS', DetailItems::INVOICE_LINE_DESCRIPTION->value);
+        self::assertSame('XN', DetailItems::INVOICE_LINE_CATEGORY->value);
+        self::assertSame('X#', DetailItems::INVOICE_LINE_QUANTITY->value);
+        self::assertSame('X$', DetailItems::INVOICE_LINE_PRICE->value);
+        self::assertSame('XF', DetailItems::INVOICE_LINE_TAXABLE->value);
     }
 
     public function testAllCasesExist(): void
@@ -86,9 +86,9 @@ final class DetailItemsTest extends TestCase
 
     public function testTryFromValidValues(): void
     {
-        self::assertSame(DetailItems::D, DetailItems::tryFrom('D'));
-        self::assertSame(DetailItems::AMNT, DetailItems::tryFrom('$'));
-        self::assertSame(DetailItems::X_HASH, DetailItems::tryFrom('X#'));
+        self::assertSame(DetailItems::DATE, DetailItems::tryFrom('D'));
+        self::assertSame(DetailItems::SPLIT_AMOUNT, DetailItems::tryFrom('$'));
+        self::assertSame(DetailItems::INVOICE_LINE_QUANTITY, DetailItems::tryFrom('X#'));
     }
 
     #[DataProvider('provideInvalidValues')]

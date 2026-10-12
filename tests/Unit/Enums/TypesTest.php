@@ -33,27 +33,27 @@ final class TypesTest extends TestCase
 
     public function testCCardValue(): void
     {
-        self::assertSame('CCard', Types::CCARD->value);
+        self::assertSame('CCard', Types::CREDIT_CARD->value);
     }
 
     public function testInvstValue(): void
     {
-        self::assertSame('Invst', Types::INVST->value);
+        self::assertSame('Invst', Types::INVESTMENT->value);
     }
 
     public function testOthAValue(): void
     {
-        self::assertSame('Oth A', Types::OTHA->value);
+        self::assertSame('Oth A', Types::OTHER_ASSET->value);
     }
 
     public function testOthLValue(): void
     {
-        self::assertSame('Oth L', Types::OTHL->value);
+        self::assertSame('Oth L', Types::OTHER_LIABILITY->value);
     }
 
     public function testInvoiceValue(): void
     {
-        self::assertSame('Invoice', Types::Invoice->value);
+        self::assertSame('Invoice', Types::INVOICE->value);
     }
 
     public function testAllCasesExist(): void
@@ -63,22 +63,22 @@ final class TypesTest extends TestCase
         self::assertCount(7, $cases);
         self::assertContains(Types::CASH, $cases);
         self::assertContains(Types::BANK, $cases);
-        self::assertContains(Types::CCARD, $cases);
-        self::assertContains(Types::INVST, $cases);
-        self::assertContains(Types::OTHA, $cases);
-        self::assertContains(Types::OTHL, $cases);
-        self::assertContains(Types::Invoice, $cases);
+        self::assertContains(Types::CREDIT_CARD, $cases);
+        self::assertContains(Types::INVESTMENT, $cases);
+        self::assertContains(Types::OTHER_ASSET, $cases);
+        self::assertContains(Types::OTHER_LIABILITY, $cases);
+        self::assertContains(Types::INVOICE, $cases);
     }
 
     public function testTryFromValidValues(): void
     {
         self::assertSame(Types::CASH, Types::tryFrom('Cash'));
         self::assertSame(Types::BANK, Types::tryFrom('Bank'));
-        self::assertSame(Types::CCARD, Types::tryFrom('CCard'));
-        self::assertSame(Types::INVST, Types::tryFrom('Invst'));
-        self::assertSame(Types::OTHA, Types::tryFrom('Oth A'));
-        self::assertSame(Types::OTHL, Types::tryFrom('Oth L'));
-        self::assertSame(Types::Invoice, Types::tryFrom('Invoice'));
+        self::assertSame(Types::CREDIT_CARD, Types::tryFrom('CCard'));
+        self::assertSame(Types::INVESTMENT, Types::tryFrom('Invst'));
+        self::assertSame(Types::OTHER_ASSET, Types::tryFrom('Oth A'));
+        self::assertSame(Types::OTHER_LIABILITY, Types::tryFrom('Oth L'));
+        self::assertSame(Types::INVOICE, Types::tryFrom('Invoice'));
     }
 
     #[DataProvider('provideInvalidValues')]

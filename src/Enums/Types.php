@@ -22,17 +22,17 @@ enum Types: string
     case BANK = 'Bank';
 
     /** Cash Flow: Credit Card Account */
-    case CCARD = 'CCard';
+    case CREDIT_CARD = 'CCard';
 
     /** Investing: Investment Account */
-    case INVST = 'Invst';
+    case INVESTMENT = 'Invst';
 
     /** Property & Debt: Asset */
-    case OTHA = 'Oth A';
+    case OTHER_ASSET = 'Oth A';
 
     /** Property & Debt: Liability */
-    case OTHL = 'Oth L';
+    case OTHER_LIABILITY = 'Oth L';
 
     /** Invoice (Quicken for Business only) */
-    case Invoice = 'Invoice';
+    case INVOICE = 'Invoice';
 }
