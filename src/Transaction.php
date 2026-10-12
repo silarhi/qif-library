@@ -18,6 +18,7 @@ use InvalidArgumentException;
 
 use function is_string;
 
+use Silarhi\Qif\Enums\DateFormat;
 use Silarhi\Qif\Enums\DetailItems;
 use Silarhi\Qif\Enums\Status;
 use Silarhi\Qif\Enums\Types;
@@ -146,12 +147,25 @@ class Transaction implements Stringable
         return $this;
     }
 
+    /**
+     * The record in QIF, dates day first (DateFormat::DayFirst).
+     */
     public function __toString(): string
+    {
+        return $this->toQif();
+    }
+
+    /**
+     * The record in QIF.
+     *
+     * @param DateFormat $dateFormat order of the day and month in the date
+     */
+    public function toQif(DateFormat $dateFormat = DateFormat::DayFirst): string
     {
         $output = '!Type:' . $this->type?->value;
 
         if (null !== $this->date) {
-            $output .= \PHP_EOL . DetailItems::Date->value . $this->date->format('d/m/Y');
+            $output .= \PHP_EOL . DetailItems::Date->value . $this->date->format($dateFormat->writeFormat());
         }
         if (null !== $this->amount) {
             $output .= \PHP_EOL . DetailItems::Amount->value . $this->amount;

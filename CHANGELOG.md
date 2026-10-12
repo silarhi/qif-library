@@ -5,6 +5,26 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.0.0] - Unreleased
+
+### Added
+
+- `DateFormat` option of `Writer`, to write dates month first (`new Writer(DateFormat::MonthFirst)`): a file read with `DateFormat::MonthFirst` can be written back the same way. `Transaction::toQif()` takes it too, and `DateFormat::writeFormat()` returns the format (`d/m/Y` or `m/d/Y`).
+- `ParseException::getLineNumber()`, `getRecordIndex()` (the index the transaction would have had in `getTransactions()`) and `getReason()` (the message without the location).
+
+### Changed
+
+- **BC break:** an empty field (a bare `P`, `M`, `L`, `A` or `E` line) is skipped like a missing one, as the empty `D` and `T` lines already were: `getDescription()`, `getMemo()` and `getCategory()` return `null` instead of `''`, an empty `A` line is left out of the address and an empty split memo is `null`. Test `null` instead of `''`. An empty `S` line still starts a split, with an empty category.
+- **BC break:** the message of a `ParseException` starts with its location, `Line 7 (record index 1): "12 EUR" is not an amount.`, and its constructor takes the reason, the line number and the record index. Match the end of the message, or use `getReason()`.
+- An empty `$` line in a split throws `The split "…" has no amount ($ line).` like a missing one, instead of `"" is not an amount.`
+
+### Fixed
+
+- A record without any value (a stray `^`, or only empty fields) is skipped: `"^\n^"` returned 2 transactions with only `null` fields.
+- The amount messages show the amount as written: `12 EUR` was reported as `"12EUR" is not an amount.`
+- After a `ParseException`, `Parser::getTransactions()` returns the transactions read before the error (documented and tested).
+- `Transaction::$_raw` ends its lines with the line break of the file instead of the parser separator (`"\r\n"` by default, even for Unix files).
+
 ## [3.0.0] - 2026-10-12
 
 ### Added
@@ -64,6 +84,7 @@ First release as `silarhi/qif-library`, a fork of the unmaintained `mimographix/
 - **BC break:** `nesbot/carbon` is no longer a dependency: `Transaction::setDate()` takes and `getDate()` returns a `DateTimeImmutable`.
 - `Parser::parseFile()` throws a `RuntimeException` when the file is missing or unreadable, and `Writer::saveToFile()` when the file cannot be written, instead of a PHP warning or `die()`.
 
+[4.0.0]: https://github.com/silarhi/qif-library/compare/3.0.0...HEAD
 [3.0.0]: https://github.com/silarhi/qif-library/compare/2.0.0...3.0.0
 [2.0.0]: https://github.com/silarhi/qif-library/compare/1.0.0...2.0.0
 [1.0.0]: https://github.com/silarhi/qif-library/releases/tag/1.0.0

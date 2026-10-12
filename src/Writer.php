@@ -16,6 +16,7 @@ namespace Silarhi\Qif;
 use function dirname;
 
 use RuntimeException;
+use Silarhi\Qif\Enums\DateFormat;
 use Stringable;
 
 class Writer implements Stringable
@@ -24,6 +25,14 @@ class Writer implements Stringable
      * @var Transaction[]
      */
     private array $transactions = [];
+
+    /**
+     * @param DateFormat $dateFormat order of the day and month in the dates: pass the format the file was parsed with
+     *                               to write it back the same way
+     */
+    public function __construct(private readonly DateFormat $dateFormat = DateFormat::DayFirst)
+    {
+    }
 
     public function addTransaction(Transaction $transaction): void
     {
@@ -43,7 +52,7 @@ class Writer implements Stringable
         $output = [];
 
         foreach ($this->transactions as $transaction) {
-            $output[] = (string) $transaction;
+            $output[] = $transaction->toQif($this->dateFormat);
         }
 
         return implode(\PHP_EOL, array_filter($output, static fn (string $transaction): bool => '' !== $transaction));

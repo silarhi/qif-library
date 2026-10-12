@@ -17,7 +17,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### Enums
 
 - **DetailItems** (`src/Enums/DetailItems.php`): Backed string enum defining all QIF field codes (D for date, T for amount, M for memo, etc.)
-- **DateFormat** (`src/Enums/DateFormat.php`): Parser option, `DayFirst` (default) or `MonthFirst` slash dates
+- **DateFormat** (`src/Enums/DateFormat.php`): Parser and Writer option, `DayFirst` (default) or `MonthFirst` slash dates (`formats()` to read, `writeFormat()` to write)
 - **DecimalSeparator** (`src/Enums/DecimalSeparator.php`): Parser option, `Point` or `Comma`; null (default) detects it per amount
 - **Types** (`src/Enums/Types.php`): Backed string enum for QIF transaction types (Cash, Bank, CCard, Invst, etc.)
 - **Status** (`src/Enums/Status.php`): Backed string enum for the cleared status (`NotCleared` = '', `Cleared` = 'c', `Reconciled` = 'X')
@@ -97,18 +97,22 @@ The Parser uses a switch statement matching single-character field codes from th
 
 Dates are parsed once per distinct value within a `parse()` call (`$dateCache`), so transactions with the same date string share one `DateTimeImmutable` instance.
 
-Never store a guessed value: impossible dates (`31/02`, detected through `DateTimeImmutable::getLastErrors()` warnings), ambiguous amounts (`1,234`) and splits without `$` throw a `ParseException`. Amounts go through the `@internal` `AmountParser`, which `Transaction::setAmount()`/`addSplit()` also use for strings.
+Never store a guessed value: impossible dates (`31/02`, detected through `DateTimeImmutable::getLastErrors()` warnings), ambiguous amounts (`1,234`) and splits without `$` throw a `ParseException`. Amounts go through the `@internal` `AmountParser`, which `Transaction::setAmount()`/`addSplit()` also use for strings; its messages show the amount as given (spaces included).
+
+`parseDate()` and `AmountParser` throw `InvalidArgumentException`, which `parse()` wraps in a `ParseException` with the line number and the record index (`count($this->transactions)`). `strtok()` skips empty lines, so the loop only counts `$lineIndex` (among non-empty lines) and `lineNumber()` re-scans the content to the real line number only when throwing: keep per-line work out of the hot loop (a `strcspn()`/`strspn()` loop tracking line numbers was 60% slower). A split error is reported on its `S` line (`lineIndex` in the split array). After a `ParseException`, `getTransactions()` holds the transactions read before it.
+
+Empty values: an empty field is skipped like a missing one (the getter stays `null`), except `S`, which always starts a split (its `$`/`E` lines belong to it; skipping it would put them on the previous split). The `Transaction` is only created at the first non-empty field, so a record without any value (a stray `^`) is skipped. `$_raw` uses the first line break of the file (`detectLineBreak()`).
 
 `parse()` resets the transactions, skips non-transaction lists (`!Account`, `!Type:Cat|Class|Security|Prices`), ignores `!Option:`/`!Clear:` lines and keeps a last record without `^`. Each `S` line starts a split; `E`/`$` without an open split (investment transfers) are ignored. Multiple `A` lines are joined with `"\n"`, and the writer splits them back.
 
 ### Transaction Rendering
 
-Transaction objects convert to QIF format via `__toString()`, which concatenates the field lines directly (no intermediate arrays): null fields are skipped, empty strings are still rendered (e.g. `P` alone), dates are formatted as 'd/m/Y'. Every parsed field is written back (date, amount, category, splits, status, payee, address, memo), so Writer output parses back to the same transactions.
+Transaction objects convert to QIF format via `toQif(DateFormat)` (`__toString()` = `toQif()`, day first), which concatenates the field lines directly (no intermediate arrays): null fields are skipped, empty strings are still rendered (e.g. `P` alone, parsed back as `null`), dates are formatted with `DateFormat::writeFormat()`. `Writer` takes a `DateFormat` and passes it to `toQif()`. Every parsed field is written back (date, amount, category, splits, status, payee, address, memo), so Writer output parses back to the same transactions.
 
 ### Error Handling
 
 - File operations throw `RuntimeException` on failure
-- Values the parser cannot read without guessing (invalid date, invalid or ambiguous amount, split without `$`) throw `Silarhi\Qif\Exception\ParseException` (a `RuntimeException`)
+- Values the parser cannot read without guessing (invalid date, invalid or ambiguous amount, split without `$`) throw `Silarhi\Qif\Exception\ParseException` (a `RuntimeException`), whose message is `Line {n} (record index {i}): {reason}` (`getLineNumber()`, `getRecordIndex()`, `getReason()`)
 - `Transaction::setAmount()`/`addSplit()` throw `InvalidArgumentException` on a string that is not an amount or is ambiguous
 - All error messages include context (e.g., file paths, the value)
 

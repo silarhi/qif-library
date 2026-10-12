@@ -33,11 +33,11 @@ composer require silarhi/qif-library
     </Card>
     <Card title="No silent guesses" icon="warning">
         Impossible dates (`31/02/2023`) and ambiguous amounts (`1,234`) throw a `ParseException` instead of being rolled
-        over or misread.
+        over or misread, with the line where they are.
     </Card>
     <Card title="Day- or month-first dates" icon="approve-check">
-        `d/m/Y` by default, `m/d/Y` for US exports, ISO dates always. The `'` year separator and space-padded dates (`1/
-        1/ 0`) too.
+        `d/m/Y` by default, `m/d/Y` for US exports, read and written. ISO dates always, and the `'` year separator and
+        space-padded dates (`1/ 1/ 0`) too.
     </Card>
     <Card title="Both number conventions" icon="setting">
         `1,234.50` and `1.234,50`, the decimal separator detected for each amount or set for the whole file.

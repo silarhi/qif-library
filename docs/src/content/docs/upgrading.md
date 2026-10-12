@@ -1,9 +1,44 @@
 ---
 title: Upgrading
-description: Upgrade from mimographix/qif-library, from version 1 to version 2, and from version 2 to version 3.
+description: Upgrade from mimographix/qif-library, and from each major version to the next one.
 ---
 
 The full list of changes is in the [changelog](https://github.com/silarhi/qif-library/blob/main/CHANGELOG.md).
+
+## From 3.x to 4.0
+
+4.0 reads empty fields and empty records the same way everywhere, and tells where a `ParseException` happened.
+
+### Empty fields are `null`
+
+An empty field (a bare `P`, `M`, `L`, `A` or `E` line) is skipped like a missing one, as the empty `D` and `T` lines
+already were: the getter returns `null` where 3.0 returned an empty string.
+
+| Input                                    | 3.0                                      | 4.0                                       |
+| ---------------------------------------- | ---------------------------------------- | ----------------------------------------- |
+| A bare `P`, `M` or `L` line              | `''`                                     | `null`                                    |
+| A bare `A` line                          | An empty line in the address             | Left out of the address                   |
+| A bare `E` line in a split               | `'memo' => ''`                           | `'memo' => null`                          |
+| A bare `$` line in a split               | `ParseException`: `"" is not an amount.` | `ParseException`: the split has no amount |
+| A record without any value (a stray `^`) | A transaction with `null` fields         | Skipped                                   |
+
+Code testing `'' === $transaction->getDescription()` (or the memo, category, address) must test `null` instead, and a
+file with stray `^` lines gives fewer transactions. An empty `S` line still starts a split, with an empty category.
+
+### ParseException messages start with the location
+
+The message of a `ParseException` starts with the line and the record index of the value:
+`Line 7 (record index 1): "12 EUR" is not an amount.` Code matching the whole message must match its end, or use
+`getReason()`, which returns the message without the location. Its constructor takes the reason, the line number and
+the record index: see [ParseException](/reference/exceptions/#parseexception).
+
+The amount messages show the amount as written in the file: `"12 EUR" is not an amount.` (3.0: `"12EUR"`).
+
+### Unchanged by default
+
+- The writer still writes dates day first: pass `DateFormat::MonthFirst` to `new Writer()` to write them month first.
+- `Transaction::$_raw` ends its lines with the line break of the file instead of the parser separator (`"\r\n"` by
+  default). Its format is not part of the API.
 
 ## From 2.x to 3.0
 

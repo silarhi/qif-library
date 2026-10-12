@@ -11,7 +11,7 @@ foreach ($dates as $date) {
     $results = [];
     foreach ([DateFormat::DayFirst, DateFormat::MonthFirst] as $format) {
         try {
-            [$transaction] = (new Parser("!Type:Bank\nD{$date}\n^\n", dateFormat: $format))->parse();
+            [$transaction] = (new Parser("!Type:Bank\nD{$date}\nT-10\n^\n", dateFormat: $format))->parse();
             $results[] = $transaction->getDate()?->format('Y-m-d H:i') ?? 'null';
         } catch (ParseException) {
             $results[] = 'ParseException';

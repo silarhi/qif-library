@@ -15,6 +15,7 @@ namespace Silarhi\Qif\Tests\Unit;
 
 use function count;
 
+use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
@@ -318,7 +319,20 @@ QIF;
         $parser = new Parser($qifContent);
         $transactions = $parser->parse();
 
+        self::assertSame("!Type:Bank\nD01/01/2023\nT-100.00\n^\n", $transactions[0]->_raw);
+    }
+
+    public function testParseStoresRawContentWithTheLineEndingsOfTheFile(): void
+    {
+        $transactions = (new Parser("!Type:Bank\r\nD01/01/2023\r\n\r\nT-100.00\r\n^\r\nT-200.00\r\n^"))->parse();
+
         self::assertSame("!Type:Bank\r\nD01/01/2023\r\nT-100.00\r\n^\r\n", $transactions[0]->_raw);
+        // Every line gets the first line break of the file, even the last one, which has none
+        self::assertSame("!Type:Bank\r\nT-200.00\r\n^\r\n", $transactions[1]->_raw);
+
+        $transactions = (new Parser("!Type:Bank\rT-100.00\r^\r"))->parse();
+
+        self::assertSame("!Type:Bank\rT-100.00\r^\r", $transactions[0]->_raw);
     }
 
     public function testParseStoresRawContentOfEachTransaction(): void
@@ -494,6 +508,7 @@ QIF;
     public function testParseInvalidAmountThrows(): void
     {
         $this->expectException(ParseException::class);
+        $this->expectExceptionMessage('"12 EUR" is not an amount.');
 
         (new Parser("!Type:Bank\nT12 EUR\n^", "\n"))->parse();
     }
@@ -504,6 +519,94 @@ QIF;
 
         self::assertNull($transactions[0]->getDate());
         self::assertNull($transactions[0]->getAmount());
+    }
+
+    public function testParseSkipsRecordsWithoutValue(): void
+    {
+        self::assertSame([], (new Parser("^\n^"))->parse());
+
+        $transactions = (new Parser("!Type:Bank\n^\nD\nT\nC\n^\nT-100.00\n^\n^\nP\n", "\n"))->parse();
+
+        self::assertCount(1, $transactions);
+        self::assertSame(-100.0, $transactions[0]->getAmount());
+        self::assertSame("!Type:Bank\nT-100.00\n^\n", $transactions[0]->_raw);
+    }
+
+    public function testParseKeepsRecordWithOnlyIgnoredFields(): void
+    {
+        $transactions = (new Parser("!Type:Bank\nN1001\n^", "\n"))->parse();
+
+        self::assertCount(1, $transactions);
+        self::assertNull($transactions[0]->getAmount());
+    }
+
+    public function testParseSkipsEmptyFields(): void
+    {
+        $transactions = (new Parser("!Type:Bank\nCX\nT10\nP\nM\nL\nA\nA1 Main St.\nA\nC\nSFood\nE\n$\n$10\n^", "\n"))->parse();
+
+        self::assertNull($transactions[0]->getDescription());
+        self::assertNull($transactions[0]->getMemo());
+        self::assertNull($transactions[0]->getCategory());
+        self::assertSame('1 Main St.', $transactions[0]->getAddress());
+        self::assertSame(Status::Reconciled, $transactions[0]->getStatus());
+        self::assertSame([['category' => 'Food', 'amount' => 10.0, 'memo' => null]], $transactions[0]->getSplits());
+    }
+
+    public function testParseEmptySplitAmountIsAMissingAmount(): void
+    {
+        $this->expectException(ParseException::class);
+        $this->expectExceptionMessage('Line 3 (record index 0): The split "Food" has no amount ($ line).');
+
+        (new Parser("!Type:Bank\nT10\nSFood\n$\n^", "\n"))->parse();
+    }
+
+    public function testParseEmptySplitCategoryStartsASplit(): void
+    {
+        $transactions = (new Parser("!Type:Bank\nT30\nSFood\n$10\nS\n$20\n^", "\n"))->parse();
+
+        self::assertSame([
+            ['category' => 'Food', 'amount' => 10.0, 'memo' => null],
+            ['category' => '', 'amount' => 20.0, 'memo' => null],
+        ], $transactions[0]->getSplits());
+    }
+
+    public function testParseExceptionHasTheLocationOfTheValue(): void
+    {
+        // Line 8, after an empty line and a stray "^": the third transaction
+        $parser = new Parser("!Type:Bank\r\nT10\r\n^\r\n\r\nT20\r\n^\r\n^\r\nT12 EUR\r\n^\r\n");
+
+        try {
+            $parser->parse();
+            self::fail('A ParseException should be thrown.');
+        } catch (ParseException $e) {
+            self::assertSame('Line 8 (record index 2): "12 EUR" is not an amount.', $e->getMessage());
+            self::assertSame('"12 EUR" is not an amount.', $e->getReason());
+            self::assertSame(8, $e->getLineNumber());
+            self::assertSame(2, $e->getRecordIndex());
+            self::assertInstanceOf(InvalidArgumentException::class, $e->getPrevious());
+        }
+
+        // The transactions read before the error
+        self::assertCount(2, $parser->getTransactions());
+    }
+
+    public function testParseExceptionOfADate(): void
+    {
+        $this->expectException(ParseException::class);
+        $this->expectExceptionMessage('Line 4 (record index 0): "31/02/2023" is not a valid date with the day first (DateFormat::DayFirst).');
+
+        (new Parser("\n\n!Type:Bank\nD31/02/2023\n^"))->parse();
+    }
+
+    public function testParseExceptionOfASplitIsOnItsSLine(): void
+    {
+        try {
+            (new Parser("!Type:Bank\nT10\n^\nT20\nSFood\nEGroceries\nSTax\n$5\n^", "\n"))->parse();
+            self::fail('A ParseException should be thrown.');
+        } catch (ParseException $e) {
+            self::assertSame(5, $e->getLineNumber());
+            self::assertSame(1, $e->getRecordIndex());
+        }
     }
 
     public function testParseSkipsAccountList(): void
@@ -533,7 +636,7 @@ QIF;
         self::assertCount(1, $transactions);
         self::assertSame(Types::Bank, $transactions[0]->getType());
         self::assertSame(-100.0, $transactions[0]->getAmount());
-        self::assertSame("!Type:Bank\r\nD25/12/2023\r\nT-100.00\r\n^\r\n", $transactions[0]->_raw);
+        self::assertSame("!Type:Bank\nD25/12/2023\nT-100.00\n^\n", $transactions[0]->_raw);
     }
 
     public function testParseSkipsCategoryAndClassLists(): void

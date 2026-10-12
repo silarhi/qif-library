@@ -39,15 +39,16 @@ final class AmountParser
             return (float) $amount;
         }
 
-        // Spaces, including the (narrow) no-break spaces of French amounts, only group thousands
-        $amount = str_replace([' ', "\u{00A0}", "\u{202F}"], '', $amount);
+        // Spaces, including the (narrow) no-break spaces of French amounts, only group thousands. The messages show
+        // the original amount
+        $compact = str_replace([' ', "\u{00A0}", "\u{202F}"], '', $amount);
 
-        if (1 !== preg_match('/^([+-]?)([\d.,]*\d[\d.,]*)$/', $amount, $matches)) {
+        if (1 !== preg_match('/^([+-]?)([\d.,]*\d[\d.,]*)$/', $compact, $matches)) {
             throw new InvalidArgumentException(sprintf('"%s" is not an amount.', $amount));
         }
         [, $sign, $number] = $matches;
 
-        $decimalSeparator ??= self::detectDecimalSeparator($number);
+        $decimalSeparator ??= self::detectDecimalSeparator($number, $amount);
         $thousandsSeparator = $decimalSeparator->thousandsSeparator();
 
         $parts = explode($decimalSeparator->value, $number);
@@ -66,7 +67,10 @@ final class AmountParser
         return (float) ($sign . ('' === $integer ? '0' : $integer) . '.' . ($parts[1] ?? ''));
     }
 
-    private static function detectDecimalSeparator(string $number): DecimalSeparator
+    /**
+     * @param string $amount the amount as written, for the message
+     */
+    private static function detectDecimalSeparator(string $number, string $amount): DecimalSeparator
     {
         $lastComma = strrpos($number, ',');
         $lastPoint = strrpos($number, '.');
@@ -85,7 +89,7 @@ final class AmountParser
 
         // Once, after 1 to 3 digits and before exactly 3 ("1,234"), it can be either
         if (1 === preg_match('/^[1-9]\d{0,2}[.,]\d{3}$/', $number)) {
-            throw new InvalidArgumentException(sprintf('"%s" is ambiguous: "%s" can be a decimal or a thousands separator. Pass the decimal separator explicitly.', $number, $separator->value));
+            throw new InvalidArgumentException(sprintf('"%s" is ambiguous: "%s" can be a decimal or a thousands separator. Pass the decimal separator explicitly.', $amount, $separator->value));
         }
 
         return $separator;

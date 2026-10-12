@@ -17,6 +17,7 @@ use DateTimeImmutable;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
+use Silarhi\Qif\Enums\DateFormat;
 use Silarhi\Qif\Enums\Status;
 use Silarhi\Qif\Enums\Types;
 use Silarhi\Qif\Parser;
@@ -202,5 +203,33 @@ final class WriterTest extends TestCase
         self::assertSame(Status::Cleared, $parsed[0]->getStatus());
         self::assertSame(Types::Cash, $parsed[1]->getType());
         self::assertSame(10.0, $parsed[1]->getAmount());
+    }
+
+    public function testWritesDatesDayFirstByDefault(): void
+    {
+        $writer = new Writer();
+        $writer->addTransaction((new Transaction(Types::Bank))->setDate(new DateTimeImmutable('2026-01-31')));
+
+        self::assertStringContainsString(\PHP_EOL . 'D31/01/2026' . \PHP_EOL, (string) $writer);
+    }
+
+    public function testWritesDatesMonthFirst(): void
+    {
+        $writer = new Writer(DateFormat::MonthFirst);
+        $writer->addTransaction((new Transaction(Types::Bank))->setDate(new DateTimeImmutable('2026-01-31')));
+
+        self::assertStringContainsString(\PHP_EOL . 'D01/31/2026' . \PHP_EOL, (string) $writer);
+    }
+
+    public function testMonthFirstFileIsWrittenBackMonthFirst(): void
+    {
+        $content = "!Type:Bank\nD12/25/2023\nT-10\nC\n^";
+
+        $writer = new Writer(DateFormat::MonthFirst);
+        foreach ((new Parser($content, dateFormat: DateFormat::MonthFirst))->parse() as $transaction) {
+            $writer->addTransaction($transaction);
+        }
+
+        self::assertSame(str_replace("\n", \PHP_EOL, $content), (string) $writer);
     }
 }

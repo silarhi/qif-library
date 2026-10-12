@@ -37,15 +37,16 @@ The cleared status of a transaction, its `C` line.
 
 ## DateFormat
 
-A parser option: the order of the day and month in the slash-separated dates of the `D` lines. See
-[Dates](/guides/parsing/#dates). It is not backed.
+A parser and writer option: the order of the day and month in the slash-separated dates of the `D` lines. See
+[Dates](/guides/parsing/#dates) and [Date format](/guides/writing/#date-format). It is not backed.
 
-| Case         | Reads                                |                            |
-| ------------ | ------------------------------------ | -------------------------- |
-| `DayFirst`   | `25/12/2023`, `25/12/23`, `25/12'23` | The default                |
-| `MonthFirst` | `12/25/2023`, `12/25/23`, `12/25'23` | The US versions of Quicken |
+| Case         | Reads                                | Writes       |                            |
+| ------------ | ------------------------------------ | ------------ | -------------------------- |
+| `DayFirst`   | `25/12/2023`, `25/12/23`, `25/12'23` | `25/12/2023` | The default                |
+| `MonthFirst` | `12/25/2023`, `12/25/23`, `12/25'23` | `12/25/2023` | The US versions of Quicken |
 
-Both read ISO dates (`2023-12-25`, `23-12-25`). `formats()` returns the `DateTimeImmutable` formats they try, in order.
+Both read ISO dates (`2023-12-25`, `23-12-25`). `formats()` returns the `DateTimeImmutable` formats they try, in order,
+and `writeFormat()` the one the writer uses (`d/m/Y` or `m/d/Y`).
 
 ## DecimalSeparator
 

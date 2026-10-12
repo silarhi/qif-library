@@ -17,6 +17,7 @@ use DateTimeImmutable;
 use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
+use Silarhi\Qif\Enums\DateFormat;
 use Silarhi\Qif\Enums\Status;
 use Silarhi\Qif\Enums\Types;
 use Silarhi\Qif\Transaction;
@@ -291,6 +292,15 @@ final class TransactionTest extends TestCase
             'MFuel for car',
             '^',
         ]), (string) $transaction);
+    }
+
+    public function testToQifWritesTheDateInTheGivenFormat(): void
+    {
+        $transaction = (new Transaction(Types::Bank))->setDate(new DateTimeImmutable('2026-01-31'));
+
+        self::assertSame("!Type:Bank\nD31/01/2026\nC\n^", str_replace(\PHP_EOL, "\n", $transaction->toQif()));
+        self::assertSame("!Type:Bank\nD01/31/2026\nC\n^", str_replace(\PHP_EOL, "\n", $transaction->toQif(DateFormat::MonthFirst)));
+        self::assertSame($transaction->toQif(), (string) $transaction);
     }
 
     public function testToStringWithNullType(): void
