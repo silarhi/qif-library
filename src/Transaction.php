@@ -141,23 +141,23 @@ class Transaction implements Stringable
         $output = '!Type:' . $this->type?->value;
 
         if (null !== $this->date) {
-            $output .= \PHP_EOL . DetailItems::D->value . $this->date->format('d/m/Y');
+            $output .= \PHP_EOL . DetailItems::DATE->value . $this->date->format('d/m/Y');
         }
         if (null !== $this->amount) {
-            $output .= \PHP_EOL . DetailItems::T->value . $this->amount;
+            $output .= \PHP_EOL . DetailItems::AMOUNT->value . $this->amount;
         }
         if (null !== $this->category) {
-            $output .= \PHP_EOL . DetailItems::L->value . $this->category;
+            $output .= \PHP_EOL . DetailItems::CATEGORY->value . $this->category;
         }
         foreach ($this->splits as $name => $split) {
-            $output .= \PHP_EOL . DetailItems::S->value . $name . \PHP_EOL . DetailItems::AMNT->value . $split['amount'];
+            $output .= \PHP_EOL . DetailItems::SPLIT_CATEGORY->value . $name . \PHP_EOL . DetailItems::SPLIT_AMOUNT->value . $split['amount'];
             if (null !== $split['memo']) {
-                $output .= \PHP_EOL . DetailItems::E->value . $split['memo'];
+                $output .= \PHP_EOL . DetailItems::SPLIT_MEMO->value . $split['memo'];
             }
         }
-        $output .= \PHP_EOL . DetailItems::C->value . $this->status->value;
+        $output .= \PHP_EOL . DetailItems::CLEARED_STATUS->value . $this->status->value;
         if (null !== $this->description) {
-            $output .= \PHP_EOL . DetailItems::P->value . $this->description;
+            $output .= \PHP_EOL . DetailItems::PAYEE->value . $this->description;
         }
 
         return $output . \PHP_EOL . '^';

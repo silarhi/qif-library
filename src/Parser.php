@@ -85,7 +85,7 @@ class Parser
                     $transaction = new Transaction($lastType);
                     $transactionRaw = '!Type:' . $lastTypeString;
                     break;
-                case DetailItems::D->value:
+                case DetailItems::DATE->value:
                     $dateString = str_replace("'", '/', $line);
                     // Normalize whitespace (handle Y2K format like "1/ 1/ 0")
                     $normalizedDate = str_replace(' ', '0', $dateString);
@@ -110,29 +110,29 @@ class Parser
                         $transaction->setDate($date);
                     }
                     break;
-                case DetailItems::T->value:
-                case DetailItems::U->value:
+                case DetailItems::AMOUNT->value:
+                case DetailItems::AMOUNT_ALT->value:
                     $transaction->setAmount((float) str_replace(',', '', $line));
                     break;
-                case DetailItems::M->value:
+                case DetailItems::MEMO->value:
                     $transaction->setMemo($line);
                     break;
-                case DetailItems::C->value:
+                case DetailItems::CLEARED_STATUS->value:
                     $transaction->setStatus(match ($line) {
                         'X', 'R' => Status::RECONCILED,
                         '*', 'c' => Status::CLEARED,
                         default => Status::NOT_CLEARED,
                     });
                     break;
-                case DetailItems::P->value:
+                case DetailItems::PAYEE->value:
                     $transaction->setDescription($line);
                     break;
-                case DetailItems::A->value:
+                case DetailItems::ADDRESS->value:
                     $transaction->setAddress($line);
                     break;
-                case DetailItems::O->value:
+                case DetailItems::COMMISSION->value:
                     break;
-                case DetailItems::L->value:
+                case DetailItems::CATEGORY->value:
                     $transaction->setCategory($line);
                     break;
                 case '^':

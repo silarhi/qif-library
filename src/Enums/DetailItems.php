@@ -17,104 +17,104 @@ enum DetailItems: string
 {
     // All
     /** Date. Leading zeroes on month and day can be skipped. Year can be either 4 digits or 2 digits or '6 (=2006). All D25 December 2006 */
-    case D = 'D';
+    case DATE = 'D';
 
     /** Amount of the item. For payments, a leading minus sign is required. For deposits, either no sign or a leading plus sign is accepted. Do not include currency symbols ($, £, ¥, etc.). Comma separators between thousands are allowed. All T-1,234.50 */
-    case T = 'T';
+    case AMOUNT = 'T';
 
     /** Seems identical to T field (amount of item.) Both T and U are present in QIF files exported from Quicken 2015. All U-1,234.50 */
-    case U = 'U';
+    case AMOUNT_ALT = 'U';
 
     /** Memo—any text you want to record about the item. All Mgasoline for my car */
-    case M = 'M';
+    case MEMO = 'M';
 
     /** Cleared status. Values are blank (not cleared), "*" or "c" (cleared) and "X" or "R" (reconciled). All CR */
-    case C = 'C';
+    case CLEARED_STATUS = 'C';
 
     // Banking, Splits, Investment
     /** Number of the check. Can also be "Deposit", "Transfer", "Print", "ATM", "EFT". Banking, Splits N1001 */
-    case N = 'N';
+    case CHECK_NUMBER = 'N';
 
     // Banking, Splits
     /** Address of Payee. Up to 5 address lines are allowed. A 6th address line is a message that prints on the check. 1st line is normally the same as the Payee line—the name of the Payee. Banking, Splits A101 Main St. */
-    case A = 'A';
+    case ADDRESS = 'A';
 
     /** Category or Transfer and (optionally) Class. The literal values are those defined in the Quicken Category list. SubCategories can be indicated by a colon (":") followed by the subcategory literal. If the Quicken file uses Classes, this can be indicated by a slash ("/") followed by the class literal. For Investments, MiscIncX or MiscExpX actions, Category/class or transfer/class. (40 characters maximum) Banking, Splits LFuel:car */
-    case L = 'L';
+    case CATEGORY = 'L';
 
     // Banking, Investment
     /** Payee. Or a description for deposits, transfers, etc. Banking, Investment PStandard Oil, Inc. */
-    case P = 'P';
+    case PAYEE = 'P';
 
     // Banking
     /** Flag this transaction as a reimbursable business expense. Banking F??? */
-    case F = 'F';
+    case REIMBURSABLE = 'F';
 
     // Investment, Splits
     /** Amount for this split of the item. Same format as T field. Splits $1,000.50 */
-    case AMNT = '$';
+    case SPLIT_AMOUNT = '$';
 
     // Split
     /** Split category. Same format as L (Categorization) field. (40 characters maximum) Splits Sgas from Esso */
-    case S = 'S';
+    case SPLIT_CATEGORY = 'S';
 
     /** Split memo—any text to go with this split item. Splits Ework trips */
-    case E = 'E';
+    case SPLIT_MEMO = 'E';
 
     /** Percent. Optional—used if splits are done by percentage. Splits %50 */
-    case PERC = '%';
+    case SPLIT_PERCENT = '%';
 
     // Investment
     /** Security name. Investment YIDS Federal Income */
-    case Y = 'Y';
+    case SECURITY = 'Y';
 
     /** Price. Investment I5.125 */
-    case I = 'I';
+    case PRICE = 'I';
 
     /** Quantity of shares (or split ratio, if Action is StkSplit). Investment Q4,896.201 */
-    case Q = 'Q';
+    case QUANTITY = 'Q';
 
     /** Commission cost (generally found in stock trades) Investment O14.95 */
-    case O = 'O';
+    case COMMISSION = 'O';
 
     // Categories
     /** Budgeted amount - may be repeated many times for monthly budgets. Categories B85.00 */
-    case B = 'B';
+    case BUDGETED_AMOUNT = 'B';
 
     // Invoices
     /** Extended data for Quicken Business. Followed by a second character subcode (see below) followed by content data. Invoices XI3 */
-    case X = 'X';
+    case EXTENDED = 'X';
 
     /** Ship-to address Invoices XAATTN: Receiving */
-    case XA = 'XA';
+    case INVOICE_SHIP_TO_ADDRESS = 'XA';
 
     /** Invoice transaction type: 1 for invoice, 3 for payment Invoices XI1 */
-    case XI = 'XI';
+    case INVOICE_TYPE = 'XI';
 
     /** Invoice due date Invoices XE6/17' 2 */
-    case XE = 'XE';
+    case INVOICE_DUE_DATE = 'XE';
 
     /** Tax account Invoices XC[*Sales Tax*] */
-    case XC = 'XC';
+    case INVOICE_TAX_ACCOUNT = 'XC';
 
     /** Tax rate Invoices XR7.70 */
-    case XR = 'XR';
+    case INVOICE_TAX_RATE = 'XR';
 
     /** Tax amount Invoices XT15.40 */
-    case XT = 'XT';
+    case INVOICE_TAX_AMOUNT = 'XT';
 
     /** Line item description Invoices XSRed shoes */
-    case XS = 'XS';
+    case INVOICE_LINE_DESCRIPTION = 'XS';
 
     /** Line item category name Invoices XNSHOES */
-    case XN = 'XN';
+    case INVOICE_LINE_CATEGORY = 'XN';
 
     /** Line item quantity Invoices X#1 */
-    case X_HASH = 'X#';
+    case INVOICE_LINE_QUANTITY = 'X#';
 
     /** Line item price per unit (multiply by X# for line item amount) Invoices X$150.00 */
-    case X_AMNT = 'X$';
+    case INVOICE_LINE_PRICE = 'X$';
 
     /** Line item taxable flag Invoices XFT */
-    case XF = 'XF';
+    case INVOICE_LINE_TAXABLE = 'XF';
 }

@@ -22,7 +22,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Key Design Patterns
 
-- Enums are PHP 8.1+ backed enums (not class constants). Access values with `->value` (e.g., `DetailItems::D->value`)
+- Enums are PHP 8.1+ backed enums (not class constants). Access values with `->value` (e.g., `DetailItems::DATE->value`)
 - Transaction splits use array structure: `['amount' => float, 'memo' => ?string]`
 - All constructor properties are `readonly` where appropriate
 - Methods use fluent interface pattern (return `self`) for chaining setters
@@ -90,7 +90,7 @@ vendor/bin/rector process --dry-run
 
 ### QIF Field Parsing
 
-The Parser uses a switch statement matching single-character field codes from the DetailItems enum (`case DetailItems::D->value:`). When adding new field types, update both the enum and the switch statement in `Parser::parse()`.
+The Parser uses a switch statement matching single-character field codes from the DetailItems enum (`case DetailItems::DATE->value:`). When adding new field types, update both the enum and the switch statement in `Parser::parse()`.
 
 Dates are parsed once per distinct value within a `parse()` call (`$dateCache`), so transactions with the same date string share one `DateTimeImmutable` instance.
 
