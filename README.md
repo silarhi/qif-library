@@ -69,7 +69,7 @@ use Silarhi\Qif\Parser;
 $parser = Parser::parseFile('/path/to/export.qif');
 
 foreach ($parser->getTransactions() as $transaction) {
-    $transaction->getType();        // Types enum, e.g. Types::BANK
+    $transaction->getType();        // Types enum, e.g. Types::Bank
     $transaction->getDate();        // ?DateTimeImmutable
     $transaction->getAmount();      // ?float, e.g. -1234.5
     $transaction->getDescription(); // ?string, the payee (P line)
@@ -124,11 +124,11 @@ With `DecimalSeparator::Comma`, `T1.234` is `1234.0` and `T1,234` is `1.234`. An
 
 | Getter             | Type                 | QIF line      | Notes                                                                           |
 | ------------------ | -------------------- | ------------- | ------------------------------------------------------------------------------- |
-| `getType()`        | `?Types`             | `!Type:`      | `CASH`, `BANK`, `CREDIT_CARD`, `INVESTMENT`...                                  |
+| `getType()`        | `?Types`             | `!Type:`      | `Cash`, `Bank`, `CreditCard`, `Investment`...                                   |
 | `getDate()`        | `?DateTimeImmutable` | `D`           | At midnight, see [Dates and amounts](#dates-and-amounts)                        |
 | `getAmount()`      | `?float`             | `T`, `U`      | See [Dates and amounts](#dates-and-amounts)                                     |
 | `getMemo()`        | `?string`            | `M`           |                                                                                 |
-| `getStatus()`      | `Status`             | `C`           | `RECONCILED` (`X`, `R`), `CLEARED` (`*`, `c`)                                   |
+| `getStatus()`      | `Status`             | `C`           | `Reconciled` (`X`, `R`), `Cleared` (`*`, `c`)                                   |
 | `getDescription()` | `?string`            | `P`           | Payee                                                                           |
 | `getAddress()`     | `?string`            | `A`           | One line per `A` line, joined with `"\n"`                                       |
 | `getCategory()`    | `?string`            | `L`           |                                                                                 |
@@ -141,7 +141,7 @@ use Silarhi\Qif\Enums\Types;
 use Silarhi\Qif\Transaction;
 use Silarhi\Qif\Writer;
 
-$transaction = (new Transaction(Types::CASH))
+$transaction = (new Transaction(Types::Cash))
     ->setDate(new DateTimeImmutable('2019-12-31'))
     ->setDescription('INV666')
     ->setAmount(18.99)
