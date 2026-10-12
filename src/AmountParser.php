@@ -35,7 +35,7 @@ final class AmountParser
     public static function parse(string $amount, ?DecimalSeparator $decimalSeparator = null): float
     {
         // A plain number ("-1234.50", "1.234") uses a decimal point, as in the QIF specification
-        if (DecimalSeparator::COMMA !== $decimalSeparator && is_numeric($amount)) {
+        if (DecimalSeparator::Comma !== $decimalSeparator && is_numeric($amount)) {
             return (float) $amount;
         }
 
@@ -73,14 +73,14 @@ final class AmountParser
 
         // Both are used: the last one separates the decimals ("1,234.50", "1.234,50")
         if (false !== $lastComma && false !== $lastPoint) {
-            return $lastComma > $lastPoint ? DecimalSeparator::COMMA : DecimalSeparator::POINT;
+            return $lastComma > $lastPoint ? DecimalSeparator::Comma : DecimalSeparator::Point;
         }
 
-        $separator = false !== $lastComma ? DecimalSeparator::COMMA : DecimalSeparator::POINT;
+        $separator = false !== $lastComma ? DecimalSeparator::Comma : DecimalSeparator::Point;
 
         // Repeated, it groups thousands ("1,234,567", "1.234.567")
         if (substr_count($number, $separator->value) > 1) {
-            return DecimalSeparator::COMMA === $separator ? DecimalSeparator::POINT : DecimalSeparator::COMMA;
+            return DecimalSeparator::Comma === $separator ? DecimalSeparator::Point : DecimalSeparator::Comma;
         }
 
         // Once, after 1 to 3 digits and before exactly 3 ("1,234"), it can be either

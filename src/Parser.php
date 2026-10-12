@@ -48,7 +48,7 @@ class Parser
     public function __construct(
         private readonly string $fileContent,
         private readonly string $separator = "\r\n",
-        private readonly DateFormat $dateFormat = DateFormat::DAY_FIRST,
+        private readonly DateFormat $dateFormat = DateFormat::DayFirst,
         private readonly ?DecimalSeparator $decimalSeparator = null,
     ) {
     }
@@ -58,7 +58,7 @@ class Parser
      *
      * @throws ParseException when a value cannot be read without guessing
      */
-    public static function parseFile(string $filePath, DateFormat $dateFormat = DateFormat::DAY_FIRST, ?DecimalSeparator $decimalSeparator = null): self
+    public static function parseFile(string $filePath, DateFormat $dateFormat = DateFormat::DayFirst, ?DecimalSeparator $decimalSeparator = null): self
     {
         if (!is_readable($filePath)) {
             throw new RuntimeException("File not found or not readable: {$filePath}");
@@ -134,7 +134,7 @@ class Parser
                 $transactionRaw .= $line . $this->separator;
 
                 switch ($first) {
-                    case DetailItems::DATE->value:
+                    case DetailItems::Date->value:
                         if ('' === $value) {
                             break;
                         }
@@ -143,46 +143,46 @@ class Parser
                         }
                         $transaction->setDate($dateCache[$value]);
                         break;
-                    case DetailItems::AMOUNT->value:
-                    case DetailItems::AMOUNT_ALT->value:
+                    case DetailItems::Amount->value:
+                    case DetailItems::AmountAlt->value:
                         if ('' !== $value) {
                             $transaction->setAmount($this->parseAmount($value));
                         }
                         break;
-                    case DetailItems::MEMO->value:
+                    case DetailItems::Memo->value:
                         $transaction->setMemo($value);
                         break;
-                    case DetailItems::CLEARED_STATUS->value:
+                    case DetailItems::ClearedStatus->value:
                         $transaction->setStatus(match ($value) {
-                            'X', 'R' => Status::RECONCILED,
-                            '*', 'c' => Status::CLEARED,
-                            default => Status::NOT_CLEARED,
+                            'X', 'R' => Status::Reconciled,
+                            '*', 'c' => Status::Cleared,
+                            default => Status::NotCleared,
                         });
                         break;
-                    case DetailItems::PAYEE->value:
+                    case DetailItems::Payee->value:
                         $transaction->setDescription($value);
                         break;
-                    case DetailItems::ADDRESS->value:
+                    case DetailItems::Address->value:
                         // One A line per address line
                         $address = $transaction->getAddress();
                         $transaction->setAddress(null === $address ? $value : $address . "\n" . $value);
                         break;
-                    case DetailItems::CATEGORY->value:
+                    case DetailItems::Category->value:
                         $transaction->setCategory($value);
                         break;
-                    case DetailItems::SPLIT_CATEGORY->value:
+                    case DetailItems::SplitCategory->value:
                         // Each S line starts a split
                         if (null !== $split) {
                             $this->addSplit($transaction, $split);
                         }
                         $split = ['category' => $value, 'amount' => null, 'memo' => null];
                         break;
-                    case DetailItems::SPLIT_MEMO->value:
+                    case DetailItems::SplitMemo->value:
                         if (null !== $split) {
                             $split['memo'] = $value;
                         }
                         break;
-                    case DetailItems::SPLIT_AMOUNT->value:
+                    case DetailItems::SplitAmount->value:
                         // Without an S line, $ is the transfer amount of an investment
                         if (null !== $split) {
                             $split['amount'] = $this->parseAmount($value);
@@ -253,6 +253,6 @@ class Parser
             }
         }
 
-        throw new ParseException(sprintf('"%s" is not a valid date with %s (DateFormat::%s).', $value, DateFormat::DAY_FIRST === $this->dateFormat ? 'the day first' : 'the month first', $this->dateFormat->name));
+        throw new ParseException(sprintf('"%s" is not a valid date with %s (DateFormat::%s).', $value, DateFormat::DayFirst === $this->dateFormat ? 'the day first' : 'the month first', $this->dateFormat->name));
     }
 }

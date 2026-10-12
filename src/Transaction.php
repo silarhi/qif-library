@@ -51,7 +51,7 @@ class Transaction implements Stringable
 
     public function __construct(private readonly ?Types $type)
     {
-        $this->status = Status::NOT_CLEARED;
+        $this->status = Status::NotCleared;
     }
 
     public function setDate(DateTimeImmutable $date): self
@@ -127,21 +127,21 @@ class Transaction implements Stringable
 
     public function markAsReconciled(): self
     {
-        $this->status = Status::RECONCILED;
+        $this->status = Status::Reconciled;
 
         return $this;
     }
 
     public function markAsCleared(): self
     {
-        $this->status = Status::CLEARED;
+        $this->status = Status::Cleared;
 
         return $this;
     }
 
     public function markAsNotCleared(): self
     {
-        $this->status = Status::NOT_CLEARED;
+        $this->status = Status::NotCleared;
 
         return $this;
     }
@@ -151,32 +151,32 @@ class Transaction implements Stringable
         $output = '!Type:' . $this->type?->value;
 
         if (null !== $this->date) {
-            $output .= \PHP_EOL . DetailItems::DATE->value . $this->date->format('d/m/Y');
+            $output .= \PHP_EOL . DetailItems::Date->value . $this->date->format('d/m/Y');
         }
         if (null !== $this->amount) {
-            $output .= \PHP_EOL . DetailItems::AMOUNT->value . $this->amount;
+            $output .= \PHP_EOL . DetailItems::Amount->value . $this->amount;
         }
         if (null !== $this->category) {
-            $output .= \PHP_EOL . DetailItems::CATEGORY->value . $this->category;
+            $output .= \PHP_EOL . DetailItems::Category->value . $this->category;
         }
         foreach ($this->splits as $split) {
-            $output .= \PHP_EOL . DetailItems::SPLIT_CATEGORY->value . $split['category'] . \PHP_EOL . DetailItems::SPLIT_AMOUNT->value . $split['amount'];
+            $output .= \PHP_EOL . DetailItems::SplitCategory->value . $split['category'] . \PHP_EOL . DetailItems::SplitAmount->value . $split['amount'];
             if (null !== $split['memo']) {
-                $output .= \PHP_EOL . DetailItems::SPLIT_MEMO->value . $split['memo'];
+                $output .= \PHP_EOL . DetailItems::SplitMemo->value . $split['memo'];
             }
         }
-        $output .= \PHP_EOL . DetailItems::CLEARED_STATUS->value . $this->status->value;
+        $output .= \PHP_EOL . DetailItems::ClearedStatus->value . $this->status->value;
         if (null !== $this->description) {
-            $output .= \PHP_EOL . DetailItems::PAYEE->value . $this->description;
+            $output .= \PHP_EOL . DetailItems::Payee->value . $this->description;
         }
         if (null !== $this->address) {
             // QIF has one A line per address line
             foreach (explode("\n", str_replace(["\r\n", "\r"], "\n", $this->address)) as $addressLine) {
-                $output .= \PHP_EOL . DetailItems::ADDRESS->value . $addressLine;
+                $output .= \PHP_EOL . DetailItems::Address->value . $addressLine;
             }
         }
         if (null !== $this->memo) {
-            $output .= \PHP_EOL . DetailItems::MEMO->value . $this->memo;
+            $output .= \PHP_EOL . DetailItems::Memo->value . $this->memo;
         }
 
         return $output . \PHP_EOL . '^';

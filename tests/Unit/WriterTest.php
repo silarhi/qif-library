@@ -30,7 +30,7 @@ final class WriterTest extends TestCase
     public function testAddTransaction(): void
     {
         $writer = new Writer();
-        $transaction = new Transaction(Types::BANK);
+        $transaction = new Transaction(Types::Bank);
 
         $writer->addTransaction($transaction);
 
@@ -41,8 +41,8 @@ final class WriterTest extends TestCase
     public function testAddMultipleTransactions(): void
     {
         $writer = new Writer();
-        $transaction1 = new Transaction(Types::BANK);
-        $transaction2 = new Transaction(Types::CASH);
+        $transaction1 = new Transaction(Types::Bank);
+        $transaction2 = new Transaction(Types::Cash);
 
         $writer->addTransaction($transaction1);
         $writer->addTransaction($transaction2);
@@ -63,7 +63,7 @@ final class WriterTest extends TestCase
     public function testToStringWithSingleTransaction(): void
     {
         $writer = new Writer();
-        $transaction = new Transaction(Types::BANK);
+        $transaction = new Transaction(Types::Bank);
         $date = new DateTimeImmutable('2023-12-25');
 
         $transaction->setDate($date)
@@ -85,12 +85,12 @@ final class WriterTest extends TestCase
     {
         $writer = new Writer();
 
-        $transaction1 = new Transaction(Types::BANK);
+        $transaction1 = new Transaction(Types::Bank);
         $transaction1->setDate(new DateTimeImmutable('2023-12-25'))
             ->setAmount(-100.0)
             ->setDescription('First');
 
-        $transaction2 = new Transaction(Types::CASH);
+        $transaction2 = new Transaction(Types::Cash);
         $transaction2->setDate(new DateTimeImmutable('2023-12-26'))
             ->setAmount(-200.0)
             ->setDescription('Second');
@@ -121,7 +121,7 @@ final class WriterTest extends TestCase
     public function testSaveToFile(): void
     {
         $writer = new Writer();
-        $transaction = new Transaction(Types::BANK);
+        $transaction = new Transaction(Types::Bank);
         $transaction->setAmount(100.0);
 
         $writer->addTransaction($transaction);
@@ -147,7 +147,7 @@ final class WriterTest extends TestCase
     public function testSaveToFileThrowsExceptionForInvalidPath(): void
     {
         $writer = new Writer();
-        $transaction = new Transaction(Types::BANK);
+        $transaction = new Transaction(Types::Bank);
         $writer->addTransaction($transaction);
 
         $this->expectException(RuntimeException::class);
@@ -159,7 +159,7 @@ final class WriterTest extends TestCase
     public function testStringableInterface(): void
     {
         $writer = new Writer();
-        $transaction = new Transaction(Types::BANK);
+        $transaction = new Transaction(Types::Bank);
         $transaction->setAmount(100.0);
 
         $writer->addTransaction($transaction);
@@ -174,7 +174,7 @@ final class WriterTest extends TestCase
 
     public function testOutputParsesBackToTheSameTransactions(): void
     {
-        $transaction = (new Transaction(Types::BANK))
+        $transaction = (new Transaction(Types::Bank))
             ->setDate(new DateTimeImmutable('2023-12-25'))
             ->setAmount(-1234.5)
             ->setDescription('Standard Oil')
@@ -186,12 +186,12 @@ final class WriterTest extends TestCase
             ->markAsCleared();
         $writer = new Writer();
         $writer->addTransaction($transaction);
-        $writer->addTransaction((new Transaction(Types::CASH))->setAmount(10.0));
+        $writer->addTransaction((new Transaction(Types::Cash))->setAmount(10.0));
 
         $parsed = (new Parser((string) $writer, \PHP_EOL))->parse();
 
         self::assertCount(2, $parsed);
-        self::assertSame(Types::BANK, $parsed[0]->getType());
+        self::assertSame(Types::Bank, $parsed[0]->getType());
         self::assertEquals($transaction->getDate(), $parsed[0]->getDate());
         self::assertSame(-1234.5, $parsed[0]->getAmount());
         self::assertSame('Standard Oil', $parsed[0]->getDescription());
@@ -199,8 +199,8 @@ final class WriterTest extends TestCase
         self::assertSame('Fuel for car', $parsed[0]->getMemo());
         self::assertSame('Fuel:Car', $parsed[0]->getCategory());
         self::assertSame($transaction->getSplits(), $parsed[0]->getSplits());
-        self::assertSame(Status::CLEARED, $parsed[0]->getStatus());
-        self::assertSame(Types::CASH, $parsed[1]->getType());
+        self::assertSame(Status::Cleared, $parsed[0]->getStatus());
+        self::assertSame(Types::Cash, $parsed[1]->getType());
         self::assertSame(10.0, $parsed[1]->getAmount());
     }
 }

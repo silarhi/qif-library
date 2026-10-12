@@ -19,11 +19,11 @@ namespace Silarhi\Qif\Enums;
 enum Status: string
 {
     /** Not cleared */
-    case NOT_CLEARED = '';
+    case NotCleared = '';
 
     /** Cleared */
-    case CLEARED = 'c';
+    case Cleared = 'c';
 
     /** Reconciled */
-    case RECONCILED = 'X';
+    case Reconciled = 'X';
 }

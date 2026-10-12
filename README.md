@@ -69,7 +69,7 @@ use Silarhi\Qif\Parser;
 $parser = Parser::parseFile('/path/to/export.qif');
 
 foreach ($parser->getTransactions() as $transaction) {
-    $transaction->getType();        // Types enum, e.g. Types::BANK
+    $transaction->getType();        // Types enum, e.g. Types::Bank
     $transaction->getDate();        // ?DateTimeImmutable
     $transaction->getAmount();      // ?float, e.g. -1234.5
     $transaction->getDescription(); // ?string, the payee (P line)
@@ -91,7 +91,7 @@ returned. A last transaction without its closing `^` is kept.
 ### Dates and amounts
 
 Dates are read day first (`25/12/2023`). For files written by US versions of Quicken (`12/25/2023`), pass
-`DateFormat::MONTH_FIRST`. ISO dates (`2023-12-25`) are read with either format. Dates are at midnight, in the default
+`DateFormat::MonthFirst`. ISO dates (`2023-12-25`) are read with either format. Dates are at midnight, in the default
 timezone. A date that does not exist in the chosen format (`31/02/2023`, or `01/31/2026` read day first) throws a
 `ParseException` instead of rolling over.
 
@@ -113,22 +113,22 @@ Pass the decimal separator to read every amount the same way:
 use Silarhi\Qif\Enums\DateFormat;
 use Silarhi\Qif\Enums\DecimalSeparator;
 
-$parser = Parser::parseFile('/path/to/export.qif', DateFormat::MONTH_FIRST, DecimalSeparator::POINT);
-$transactions = (new Parser($content, dateFormat: DateFormat::DAY_FIRST, decimalSeparator: DecimalSeparator::COMMA))->parse();
+$parser = Parser::parseFile('/path/to/export.qif', DateFormat::MonthFirst, DecimalSeparator::Point);
+$transactions = (new Parser($content, dateFormat: DateFormat::DayFirst, decimalSeparator: DecimalSeparator::Comma))->parse();
 ```
 
-With `DecimalSeparator::COMMA`, `T1.234` is `1234.0` and `T1,234` is `1.234`. An amount written in the other convention
+With `DecimalSeparator::Comma`, `T1.234` is `1234.0` and `T1,234` is `1.234`. An amount written in the other convention
 (`1,234.50`) throws a `ParseException`.
 
 ### What you get
 
 | Getter             | Type                 | QIF line      | Notes                                                                           |
 | ------------------ | -------------------- | ------------- | ------------------------------------------------------------------------------- |
-| `getType()`        | `?Types`             | `!Type:`      | `CASH`, `BANK`, `CREDIT_CARD`, `INVESTMENT`...                                  |
+| `getType()`        | `?Types`             | `!Type:`      | `Cash`, `Bank`, `CreditCard`, `Investment`...                                   |
 | `getDate()`        | `?DateTimeImmutable` | `D`           | At midnight, see [Dates and amounts](#dates-and-amounts)                        |
 | `getAmount()`      | `?float`             | `T`, `U`      | See [Dates and amounts](#dates-and-amounts)                                     |
 | `getMemo()`        | `?string`            | `M`           |                                                                                 |
-| `getStatus()`      | `Status`             | `C`           | `RECONCILED` (`X`, `R`), `CLEARED` (`*`, `c`)                                   |
+| `getStatus()`      | `Status`             | `C`           | `Reconciled` (`X`, `R`), `Cleared` (`*`, `c`)                                   |
 | `getDescription()` | `?string`            | `P`           | Payee                                                                           |
 | `getAddress()`     | `?string`            | `A`           | One line per `A` line, joined with `"\n"`                                       |
 | `getCategory()`    | `?string`            | `L`           |                                                                                 |
@@ -141,7 +141,7 @@ use Silarhi\Qif\Enums\Types;
 use Silarhi\Qif\Transaction;
 use Silarhi\Qif\Writer;
 
-$transaction = (new Transaction(Types::CASH))
+$transaction = (new Transaction(Types::Cash))
     ->setDate(new DateTimeImmutable('2019-12-31'))
     ->setDescription('INV666')
     ->setAmount(18.99)

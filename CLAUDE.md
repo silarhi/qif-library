@@ -17,14 +17,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### Enums
 
 - **DetailItems** (`src/Enums/DetailItems.php`): Backed string enum defining all QIF field codes (D for date, T for amount, M for memo, etc.)
-- **DateFormat** (`src/Enums/DateFormat.php`): Parser option, `DAY_FIRST` (default) or `MONTH_FIRST` slash dates
-- **DecimalSeparator** (`src/Enums/DecimalSeparator.php`): Parser option, `POINT` or `COMMA`; null (default) detects it per amount
+- **DateFormat** (`src/Enums/DateFormat.php`): Parser option, `DayFirst` (default) or `MonthFirst` slash dates
+- **DecimalSeparator** (`src/Enums/DecimalSeparator.php`): Parser option, `Point` or `Comma`; null (default) detects it per amount
 - **Types** (`src/Enums/Types.php`): Backed string enum for QIF transaction types (Cash, Bank, CCard, Invst, etc.)
-- **Status** (`src/Enums/Status.php`): Backed string enum for the cleared status (`NOT_CLEARED` = '', `CLEARED` = 'c', `RECONCILED` = 'X')
+- **Status** (`src/Enums/Status.php`): Backed string enum for the cleared status (`NotCleared` = '', `Cleared` = 'c', `Reconciled` = 'X')
 
 ### Key Design Patterns
 
-- Enums are PHP 8.1+ backed enums (not class constants). Access values with `->value` (e.g., `DetailItems::DATE->value`)
+- Enums are PHP 8.1+ backed enums (not class constants). Access values with `->value` (e.g., `DetailItems::Date->value`)
+- Enum cases are PascalCase (`Types::CreditCard`, `Status::NotCleared`, `DateFormat::DayFirst`), never UPPER_SNAKE_CASE
 - Transaction splits are a list (several splits can share a category): `[['category' => string, 'amount' => float, 'memo' => ?string], ...]`
 - All constructor properties are `readonly` where appropriate
 - Methods use fluent interface pattern (return `self`) for chaining setters
@@ -92,7 +93,7 @@ vendor/bin/rector process --dry-run
 
 ### QIF Field Parsing
 
-The Parser uses a switch statement matching single-character field codes from the DetailItems enum (`case DetailItems::DATE->value:`). When adding new field types, update both the enum and the switch statement in `Parser::parse()`.
+The Parser uses a switch statement matching single-character field codes from the DetailItems enum (`case DetailItems::Date->value:`). When adding new field types, update both the enum and the switch statement in `Parser::parse()`.
 
 Dates are parsed once per distinct value within a `parse()` call (`$dateCache`), so transactions with the same date string share one `DateTimeImmutable` instance.
 

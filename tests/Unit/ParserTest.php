@@ -69,10 +69,10 @@ QIF;
 
         $transaction = $transactions[0];
 
-        self::assertSame(Types::BANK, $transaction->getType());
+        self::assertSame(Types::Bank, $transaction->getType());
         self::assertSame('2023-12-25', $transaction->getDate()?->format('Y-m-d'));
         self::assertSame(-1234.50, $transaction->getAmount());
-        self::assertSame(Status::RECONCILED, $transaction->getStatus());
+        self::assertSame(Status::Reconciled, $transaction->getStatus());
         self::assertSame('Standard Oil', $transaction->getDescription());
         self::assertSame('Main Street 123', $transaction->getAddress());
         self::assertSame('Fuel for car', $transaction->getMemo());
@@ -135,11 +135,11 @@ QIF;
         $parser = new Parser($qifContent);
         $transactions = $parser->parse();
 
-        self::assertSame(Status::RECONCILED, $transactions[0]->getStatus());
-        self::assertSame(Status::RECONCILED, $transactions[1]->getStatus());
-        self::assertSame(Status::CLEARED, $transactions[2]->getStatus());
-        self::assertSame(Status::CLEARED, $transactions[3]->getStatus());
-        self::assertSame(Status::NOT_CLEARED, $transactions[4]->getStatus());
+        self::assertSame(Status::Reconciled, $transactions[0]->getStatus());
+        self::assertSame(Status::Reconciled, $transactions[1]->getStatus());
+        self::assertSame(Status::Cleared, $transactions[2]->getStatus());
+        self::assertSame(Status::Cleared, $transactions[3]->getStatus());
+        self::assertSame(Status::NotCleared, $transactions[4]->getStatus());
     }
 
     public function testParseAmountWithCommas(): void
@@ -419,9 +419,9 @@ QIF;
         $transactions = (new Parser("!Type:Bank\nT-100.00\n!Type:Cash\nT-200.00\n^", "\n"))->parse();
 
         self::assertCount(2, $transactions);
-        self::assertSame(Types::BANK, $transactions[0]->getType());
+        self::assertSame(Types::Bank, $transactions[0]->getType());
         self::assertSame(-100.0, $transactions[0]->getAmount());
-        self::assertSame(Types::CASH, $transactions[1]->getType());
+        self::assertSame(Types::Cash, $transactions[1]->getType());
     }
 
     public function testParseTwiceReturnsTheSameTransactions(): void
@@ -458,7 +458,7 @@ QIF;
         file_put_contents($file, "!Type:Bank\nD12/25/2023\nT1.234\n^\n");
 
         try {
-            $transaction = Parser::parseFile($file, DateFormat::MONTH_FIRST, DecimalSeparator::COMMA)->getTransactions()[0];
+            $transaction = Parser::parseFile($file, DateFormat::MonthFirst, DecimalSeparator::Comma)->getTransactions()[0];
         } finally {
             unlink($file);
         }
@@ -487,8 +487,8 @@ QIF;
     {
         $qifContent = "!Type:Bank\nT1,234\n^";
 
-        self::assertSame(1234.0, (new Parser($qifContent, "\n", decimalSeparator: DecimalSeparator::POINT))->parse()[0]->getAmount());
-        self::assertSame(1.234, (new Parser($qifContent, "\n", decimalSeparator: DecimalSeparator::COMMA))->parse()[0]->getAmount());
+        self::assertSame(1234.0, (new Parser($qifContent, "\n", decimalSeparator: DecimalSeparator::Point))->parse()[0]->getAmount());
+        self::assertSame(1.234, (new Parser($qifContent, "\n", decimalSeparator: DecimalSeparator::Comma))->parse()[0]->getAmount());
     }
 
     public function testParseInvalidAmountThrows(): void
@@ -531,7 +531,7 @@ QIF;
         $transactions = (new Parser($qifContent))->parse();
 
         self::assertCount(1, $transactions);
-        self::assertSame(Types::BANK, $transactions[0]->getType());
+        self::assertSame(Types::Bank, $transactions[0]->getType());
         self::assertSame(-100.0, $transactions[0]->getAmount());
         self::assertSame("!Type:Bank\r\nD25/12/2023\r\nT-100.00\r\n^\r\n", $transactions[0]->_raw);
     }
@@ -556,14 +556,14 @@ QIF;
         $transactions = (new Parser($qifContent))->parse();
 
         self::assertCount(1, $transactions);
-        self::assertSame(Types::CREDIT_CARD, $transactions[0]->getType());
+        self::assertSame(Types::CreditCard, $transactions[0]->getType());
     }
 
     public function testParseOptionDoesNotChangeTheType(): void
     {
         $transactions = (new Parser("!Type:Bank\nT-100.00\n^\n!Option:MDY\nT-200.00\n^", "\n"))->parse();
 
-        self::assertSame(Types::BANK, $transactions[1]->getType());
+        self::assertSame(Types::Bank, $transactions[1]->getType());
     }
 
     public function testParseDateIsAtMidnight(): void
@@ -576,7 +576,7 @@ QIF;
 
     public function testParseIsoDate(): void
     {
-        $transactions = (new Parser("!Type:Bank\nD2023-12-25\n^", "\n", DateFormat::MONTH_FIRST))->parse();
+        $transactions = (new Parser("!Type:Bank\nD2023-12-25\n^", "\n", DateFormat::MonthFirst))->parse();
 
         self::assertSame('2023-12-25', $transactions[0]->getDate()?->format('Y-m-d'));
     }
@@ -590,7 +590,7 @@ QIF;
 
     public function testParseMonthFirstDate(): void
     {
-        $transactions = (new Parser("!Type:Bank\nD01/31/2026\n^\nD12/25'23\n^", "\n", DateFormat::MONTH_FIRST))->parse();
+        $transactions = (new Parser("!Type:Bank\nD01/31/2026\n^\nD12/25'23\n^", "\n", DateFormat::MonthFirst))->parse();
 
         self::assertSame('2026-01-31', $transactions[0]->getDate()?->format('Y-m-d'));
         self::assertSame('2023-12-25', $transactions[1]->getDate()?->format('Y-m-d'));
@@ -599,7 +599,7 @@ QIF;
     public function testParseMonthFirstDateWithDayFirstFormatThrows(): void
     {
         $this->expectException(ParseException::class);
-        $this->expectExceptionMessage('"01/31/2026" is not a valid date with the day first (DateFormat::DAY_FIRST).');
+        $this->expectExceptionMessage('"01/31/2026" is not a valid date with the day first (DateFormat::DayFirst).');
 
         (new Parser("!Type:Bank\nD01/31/2026\n^", "\n"))->parse();
     }
