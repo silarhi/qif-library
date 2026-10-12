@@ -37,4 +37,15 @@ enum DateFormat
             self::MonthFirst => ['m/d/y', 'y-m-d', 'm/d/Y', 'Y-m-d'],
         };
     }
+
+    /**
+     * Format of the dates the writer outputs, with four-digit years.
+     */
+    public function writeFormat(): string
+    {
+        return match ($this) {
+            self::DayFirst => 'd/m/Y',
+            self::MonthFirst => 'm/d/Y',
+        };
+    }
 }

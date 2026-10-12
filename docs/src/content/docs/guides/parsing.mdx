@@ -31,7 +31,9 @@ $transactions = (new Parser($content))->parse();
 ```
 
 `getTransactions()` returns the same array afterwards, and an empty array until `parse()` has run. Calling `parse()`
-again parses the content again and replaces the transactions: `parseFile()` has already called it.
+again parses the content again and replaces the transactions: `parseFile()` has already called it. When `parse()`
+throws a `ParseException`, `getTransactions()` returns the transactions read before the error: see
+[Error handling](/guides/error-handling/#where-it-happened).
 
 The second argument of the constructor is the line separator, `"\r\n"` by default. Each of its characters ends a
 line, so the default reads Windows (`\r\n`), Unix (`\n`) and old Mac (`\r`) files, and skips empty lines: you never
@@ -73,13 +75,15 @@ $transactions = (new Parser($content, dateFormat: DateFormat::DayFirst, decimalS
 | `getCategory()`    | `?string`            | `L`           |                                                                                              |
 | `getSplits()`      | `list<array>`        | `S`, `E`, `$` | `[['category' => string, 'amount' => float, 'memo' => ?string], ...]`: see [Splits](#splits) |
 
-The values are the rest of the line after its code, with the spaces around the line trimmed. A field missing from the
-record is `null`, an empty one (a bare `P` line) is an empty string.
+The values are the rest of the line after its code, with the spaces around the line trimmed. An empty field (a bare
+`P`, `D` or `T` line) is skipped like a missing one: the getter returns `null`, and an empty `C` line leaves the
+`NotCleared` status. The only exception is the `S` line, which starts a split even when empty: see [Splits](#splits).
 
 ## How a file is read
 
 - **Records** end with a `^` line. The last record of the file is kept even without its closing `^`, and so is a
-  record followed by a new header.
+  record followed by a new header. A record without any value (a stray `^`, or only empty fields) is not a
+  transaction: it is skipped.
 - **Headers**: a `!Type:` line sets the type of the records that follow it, until the next header. An unknown type
   (`!Type:Memorized`) gives them a `null` type. The type values are listed in [Types](/reference/enums/#types).
 - **Lists that are not transactions** are skipped, up to the next header: accounts (`!Account`), categories
@@ -105,8 +109,10 @@ share a category:
 ]
 ```
 
-A split without a `$` line throws a `ParseException`. A `$` or `E` line that does not follow an `S` line is ignored:
-in investment records, `$` is the amount transferred.
+A split without a `$` line, or with an empty one, throws a `ParseException`; an empty `E` line leaves the memo
+`null`. An empty `S` line still starts a split, with an empty string as category, as the `$` and `E` lines that follow
+it belong to it. A `$` or `E` line that does not follow an `S` line is ignored: in investment records, `$` is the
+amount transferred.
 
 ## Dates
 
@@ -134,7 +140,8 @@ default, the decimal separator is detected for each amount:
   is ambiguous, `1234` or `1.234`, and throws a `ParseException`.
 
 Pass `DecimalSeparator::Point` or `DecimalSeparator::Comma` to read every amount of the file the same way. An amount
-written in the other convention then throws a `ParseException`, and so does a value that is not a number (`12 EUR`):
+written in the other convention then throws a `ParseException`, and so does a value that is not a number (`12 EUR`).
+The messages show the amount as written in the file, spaces included:
 
 <Example name="amounts" />
 
@@ -143,5 +150,6 @@ An empty `T` line leaves the amount `null`.
 ## Raw record
 
 Each parsed transaction keeps the lines it was read from in its public `$_raw` property, for debugging and logs. Its
-header line comes first, on a line of its own (`!Type:Bank`, or `!Type:Memorized` for an unknown type). It is `null` on the transactions you
-build yourself. Its exact format is not part of the API.
+header line comes first, on a line of its own (`!Type:Bank`, or `!Type:Memorized` for an unknown type). Every line
+ends with the line break of the file (its first one: `"\r\n"`, `"\n"` or `"\r"`), the last one included, and empty
+lines are left out. It is `null` on the transactions you build yourself. Its exact format is not part of the API.

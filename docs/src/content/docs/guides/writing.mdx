@@ -64,10 +64,20 @@ $writer->saveToFile('/path/to/export.qif'); // or write it to disk
 `getTransactions()` returns the transactions added so far. `saveToFile()` throws a `RuntimeException` when the
 directory is not writable or the file cannot be opened: see [Error handling](/guides/error-handling/).
 
+## Date format
+
+The writer formats dates as `d/m/Y` by default, the way the [parser](/guides/parsing/#dates) reads them by default.
+Pass `DateFormat::MonthFirst` to the constructor to write `m/d/Y`, for the US versions of Quicken: a file read with
+`DateFormat::MonthFirst` is then written back with its dates in the same order.
+
+<Example name="month-first" />
+
+Make sure the application importing the files expects the order you write.
+
 ## Output format
 
-The writer outputs the type, date (`d/m/Y`), amount, category, splits, cleared status, payee, address and memo of
-each transaction, in this order, then `^`:
+The writer outputs the type, date (`d/m/Y`, or `m/d/Y`: see [Date format](#date-format)), amount, category, splits,
+cleared status, payee, address and memo of each transaction, in this order, then `^`:
 
 - every transaction starts with its own `!Type:` line, empty when the type is `null`;
 - `null` fields are left out, empty strings are written (a bare `P` line);
@@ -77,18 +87,15 @@ each transaction, in this order, then `^`:
 - amounts use PHP's float to string conversion: `2400`, `-84.3`, no thousands separator;
 - lines end with `PHP_EOL`, and there is no line break after the last `^`.
 
-Each transaction is a `Stringable` too: `(string) $transaction` returns its own record.
-
-:::note[Dates are day first]
-The writer formats dates as `d/m/Y`, the way the [parser](/guides/parsing/#dates) reads them by default: parse the
-files it writes with `DateFormat::DayFirst`, and make sure the application importing them expects that order.
-:::
+Each transaction is a `Stringable` too: `(string) $transaction` returns its own record, dates day first, and
+`$transaction->toQif(DateFormat::MonthFirst)` returns it with the dates month first.
 
 ## Round trip
 
 The writer outputs every field the parser reads, so a parsed transaction can be written back as is and parses back to
-the same values. Only the formatting changes: the amounts lose their thousands separators, the `*` cleared status
-becomes `c`, each record gets its own `!Type:` line, the lines follow the writer's order, and the `!Account` list of
-`export.qif` is not written:
+the same values. Pass the writer the `DateFormat` the file was parsed with to keep its date order. Only the formatting
+changes: the amounts lose their thousands separators, the `*` cleared status becomes `c`, each record gets its own
+`!Type:` line, the lines follow the writer's order, and the `!Account` list of `export.qif` is not written. An empty
+string you set yourself (`setDescription('')`) is written as a bare `P` line, which the parser reads back as `null`:
 
 <Example name="round-trip" input="export.qif" />

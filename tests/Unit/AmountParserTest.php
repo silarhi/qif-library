@@ -96,4 +96,24 @@ final class AmountParserTest extends TestCase
 
         AmountParser::parse($amount, $decimalSeparator);
     }
+
+    /**
+     * @return iterable<string, array{string, DecimalSeparator|null, string}>
+     */
+    public static function provideMessages(): iterable
+    {
+        yield 'not an amount' => ['12 EUR', null, '"12 EUR" is not an amount.'];
+        yield 'ambiguous' => ['- 1,234', null, '"- 1,234" is ambiguous'];
+        yield 'two decimal separators' => ['1 234,5,6', DecimalSeparator::Comma, '"1 234,5,6" is not an amount with "," as decimal separator.'];
+        yield 'misgrouped thousands' => ['1 2.34,50', null, '"1 2.34,50" does not group its thousands by ".".'];
+    }
+
+    #[DataProvider('provideMessages')]
+    public function testMessagesShowTheAmountAsWritten(string $amount, ?DecimalSeparator $decimalSeparator, string $message): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage($message);
+
+        AmountParser::parse($amount, $decimalSeparator);
+    }
 }

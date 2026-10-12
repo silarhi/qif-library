@@ -17,15 +17,44 @@ import Example from '../../../components/Example.astro'
 - `Transaction::setAmount()` and `addSplit()` throw an `InvalidArgumentException` when given a string that is not an
   amount or is ambiguous (`'1,234'`)
 
-The messages include the path or the value:
+The messages include the path or the value, as written in the file, and the parse errors start with where they
+happened:
 
 <Example name="errors" />
 
 `ParseException` extends `RuntimeException`: catching `RuntimeException` around `parseFile()` catches both the file
-errors and the parse errors. A `ParseException` stops the parsing: the transactions read before it are not returned.
-The full list, with every message, is in the [exceptions reference](/reference/exceptions/).
+errors and the parse errors. The full list, with every message, is in the [exceptions reference](/reference/exceptions/).
+
+### Where it happened
+
+A `ParseException` stops the parsing at the first value it cannot read. It tells where that value is:
+
+| Method             | Returns                                                                                                 |
+| ------------------ | ------------------------------------------------------------------------------------------------------- |
+| `getLineNumber()`  | The line of the value, from 1, empty lines included. A split without amount is reported on its `S` line |
+| `getRecordIndex()` | The index the transaction would have had in `getTransactions()`, from 0: the number read before it      |
+| `getReason()`      | The message without the location: `"12 EUR" is not an amount.`                                          |
+
+The transactions read before the error are not lost: after a failed `parse()`, `getTransactions()` returns them.
+`Parser::parseFile()` does not return the parser when it throws: to keep them, read the file yourself and parse it
+with the constructor:
+
+````php
+use Silarhi\Qif\Exception\ParseException;
+use Silarhi\Qif\Parser;
+
+$parser = new Parser(file_get_contents('/path/to/export.qif'));
+try {
+    $parser->parse();
+} catch (ParseException $e) {
+    error_log($e->getMessage());
+}
+
+$transactions = $parser->getTransactions(); // every transaction before the error
 
 ### Fixing a ParseException
+
+The messages below are the reasons, without the `Line 2 (record index 0): ` prefix.
 
 | Message                                                                                           | Cause                                                                | Fix                                                                              |
 | ------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
@@ -33,8 +62,8 @@ The full list, with every message, is in the [exceptions reference](/reference/e
 | `"31/02/2026" is not a valid date…`                                                               | A date that does not exist with either format                        | Fix the file                                                                     |
 | `"1,234" is ambiguous…`                                                                           | A single `,` between 1 to 3 digits and 3 digits: `1234` or `1.234`   | Pass the `DecimalSeparator` of the file: see [Amounts](/guides/parsing/#amounts) |
 | `"…" is not an amount with "." as decimal separator.`, `"…" does not group its thousands by ",".` | An amount in the other convention than the `DecimalSeparator` passed | Pass the other `DecimalSeparator`, or none to detect it                          |
-| `"12EUR" is not an amount.`                                                                       | Not a number                                                         | Fix the file                                                                     |
-| `The split "Tax" has no amount ($ line).`                                                         | An `S` line without its `$` line                                     | Fix the file                                                                     |
+| `"12 EUR" is not an amount.`                                                                      | Not a number                                                         | Fix the file                                                                     |
+| `The split "Tax" has no amount ($ line).`                                                         | An `S` line without its `$` line, or with an empty one               | Fix the file                                                                     |
 
 ## What does not throw
 
@@ -43,7 +72,9 @@ what matters to you after parsing:
 
 | Input                                                                          | Result                                                                 |
 | ------------------------------------------------------------------------------ | ---------------------------------------------------------------------- |
-| A record without `D` or `T` line, or an empty one                              | `getDate()` or `getAmount()` returns `null`                            |
+| A record without `D` or `T` line                                               | `getDate()` or `getAmount()` returns `null`                            |
+| An empty field (a bare `P`, `D` or `T` line)                                   | Skipped: the getter returns `null`, as for a missing field             |
+| A record without any value (a stray `^`, only empty fields)                    | Skipped: it is not a transaction                                       |
 | An unknown `!Type:` (`!Type:Memorized`)                                        | `getType()` returns `null`                                             |
 | `!Account`, `!Type:Cat`, `!Type:Class`, `!Type:Security`, `!Type:Prices` lists | Skipped: they hold no transactions                                     |
 | `!Option:` and `!Clear:` lines                                                 | Ignored                                                                |
@@ -61,4 +92,4 @@ foreach ($parser->getTransactions() as $transaction) {
         throw new UnexpectedValueException('Transaction without a date: ' . $transaction->_raw);
     }
 }
-```
+````

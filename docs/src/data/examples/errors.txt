@@ -1,7 +1,9 @@
 File not found or not readable: missing.qif
 Directory not writable: /missing/directory
-"31/02/2026" is not a valid date with the day first (DateFormat::DayFirst).
-"1,234" is ambiguous: "," can be a decimal or a thousands separator. Pass the decimal separator explicitly.
-"12EUR" is not an amount.
-The split "Tax" has no amount ($ line).
+Line 2 (record index 0): "31/02/2026" is not a valid date with the day first (DateFormat::DayFirst).
+Line 2 (record index 0): "1,234" is ambiguous: "," can be a decimal or a thousands separator. Pass the decimal separator explicitly.
+Line 2 (record index 0): "12 EUR" is not an amount.
+Line 3 (record index 0): The split "Tax" has no amount ($ line).
+Line 7, record index 1: "12 EUR" is not an amount.
+1 transaction read before it
 "1,234" is ambiguous: "," can be a decimal or a thousands separator. Pass the decimal separator explicitly.

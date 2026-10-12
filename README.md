@@ -46,9 +46,9 @@
 - **Writer**: builds QIF output from `Transaction` objects, splits, memo and address included
 - **Typed results**: dates as `DateTimeImmutable`, amounts as `float`, account types and cleared status as enums
 - **No silent guesses**: impossible dates (`31/02/2023`) and ambiguous amounts (`1,234`) throw a `ParseException`
-  instead of being rolled over or misread
+  instead of being rolled over or misread, with the line where they are
 - **Both number conventions**: `1,234.50` and `1.234,50`, detected per amount or set explicitly
-- **Day- or month-first dates**: `d/m/Y` by default, `m/d/Y` on demand, ISO dates always
+- **Day- or month-first dates**: `d/m/Y` by default, `m/d/Y` on demand, read and written; ISO dates always
 - **No dependencies**: plain PHP, Windows and Unix line endings, UTF-8 BOM stripped
 
 ## Requirements

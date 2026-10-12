@@ -1,0 +1,6 @@
+!Type:Bank
+D01/31/2026
+T-42.5
+C
+PDemo Grocery
+^

@@ -29,7 +29,7 @@ public static function parseFile(
 | `__construct()`      |                 | The content to parse; each character of `$separator` ends a line. See [Options](/guides/parsing/#options) |
 | `static parseFile()` | `Parser`        | Reads and parses a file. Throws a `RuntimeException` or a `ParseException`                                |
 | `parse()`            | `Transaction[]` | Parses the content, replacing the transactions of a previous call. Throws a `ParseException`              |
-| `getTransactions()`  | `Transaction[]` | The transactions of the last `parse()` call, an empty array before                                        |
+| `getTransactions()`  | `Transaction[]` | The transactions of the last `parse()` call, an empty array before; those read before a `ParseException`  |
 
 `$decimalSeparator` is `null` to detect the decimal separator of each amount. The enums `DateFormat` and
 `DecimalSeparator` are in `Silarhi\Qif\Enums`: see [DateFormat](/reference/enums/#dateformat) and
@@ -38,7 +38,8 @@ public static function parseFile(
 ## Transaction
 
 `Silarhi\Qif\Transaction` is one QIF record. It implements `Stringable`: `(string) $transaction` returns the record in
-QIF. See [Writing QIF files](/guides/writing/).
+QIF, dates day first, and `toQif(DateFormat $dateFormat = DateFormat::DayFirst): string` in the date format you pass.
+See [Writing QIF files](/guides/writing/).
 
 `__construct(?Types $type)`: the account type can't be changed afterwards. A new transaction has no date, amount, payee,
 category, memo, address or split, and the `Status::NotCleared` status.
@@ -80,6 +81,13 @@ is none). The public `?string $_raw` property holds the lines a parsed transacti
 
 `Silarhi\Qif\Writer` turns transactions into QIF. It implements `Stringable`: `(string) $writer` returns the content.
 
+```php
+public function __construct(DateFormat $dateFormat = DateFormat::DayFirst)
+```
+
+`$dateFormat` is the order of the day and month in the dates it writes: see
+[Date format](/guides/writing/#date-format).
+
 | Method                                     | Returns         | Description                                                               |
 | ------------------------------------------ | --------------- | ------------------------------------------------------------------------- |
 | `addTransaction(Transaction $transaction)` | `void`          | Adds a transaction                                                        |
@@ -88,5 +96,6 @@ is none). The public `?string $_raw` property holds the lines a parsed transacti
 
 ## ParseException
 
-`Silarhi\Qif\Exception\ParseException` extends `RuntimeException`, with no method of its own. See
-[Exceptions](/reference/exceptions/).
+`Silarhi\Qif\Exception\ParseException` extends `RuntimeException`. Its message starts with where the value is
+(`Line 7 (record index 1): "12 EUR" is not an amount.`), also returned by `getLineNumber(): int`,
+`getRecordIndex(): int` and `getReason(): string`. See [Exceptions](/reference/exceptions/#parseexception).
