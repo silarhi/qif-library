@@ -1,0 +1,92 @@
+---
+title: Parsing QIF files
+description: Read a QIF file or string into Transaction objects, and what the parser reads, converts and ignores.
+sidebar:
+    order: 1
+---
+
+import Example from '../../../components/Example.astro'
+
+## From a file
+
+`Parser::parseFile()` reads the file, parses it and returns the parser. `getTransactions()` then returns the
+transactions, in the order of the file:
+
+<Example name="parsing" input="export.qif" />
+
+`parseFile()` throws a `RuntimeException` when the file does not exist or cannot be read: see
+[Error handling](/guides/error-handling/).
+
+## From a string
+
+To parse content you already have in memory (an upload, an HTTP response…), use the constructor and call `parse()`,
+which returns the transactions:
+
+```php
+use Silarhi\Qif\Parser;
+
+$transactions = (new Parser($content))->parse();
+```
+
+:::caution[Parse once]
+Each call to `parse()` appends the transactions it reads to those of the previous calls. `parseFile()` already calls
+it: read the result with `getTransactions()`, which returns an empty array until `parse()` has run.
+:::
+
+The second argument of the constructor is the line separator, `"\r\n"` by default. Each of its characters ends a
+line, so the default reads Windows (`\r\n`), Unix (`\n`) and old Mac (`\r`) files, and skips empty lines: you never
+need to change it for these files.
+
+The whole content is held in memory, and so are the transactions.
+
+## What you get
+
+| Getter             | Type                 | QIF line | Notes                                                             |
+| ------------------ | -------------------- | -------- | ----------------------------------------------------------------- |
+| `getType()`        | `?Types`             | `!Type:` | `BANK`, `CASH`, `CREDIT_CARD`… `null` for other headers           |
+| `getDate()`        | `?DateTimeImmutable` | `D`      | `null` when missing or not a date: see [Dates](#dates)            |
+| `getAmount()`      | `?float`             | `T`, `U` | Thousands separators (`,`) are removed                            |
+| `getMemo()`        | `?string`            | `M`      |                                                                   |
+| `getStatus()`      | `Status`             | `C`      | `RECONCILED` (`X`, `R`), `CLEARED` (`*`, `c`), else `NOT_CLEARED` |
+| `getDescription()` | `?string`            | `P`      | Payee                                                             |
+| `getAddress()`     | `?string`            | `A`      | The last `A` line of the record                                   |
+| `getCategory()`    | `?string`            | `L`      |                                                                   |
+| `getSplits()`      | `array`              | —        | Always empty: the parser does not read `S`, `$` and `E` lines     |
+
+The values are the rest of the line after its code, with the spaces around the line trimmed. A field missing from the
+record is `null`, an empty one (a bare `P` line) is an empty string.
+
+## How a file is read
+
+- **Records** end with a `^` line. A record not closed by `^` at the end of the file is dropped.
+- **Headers**: a `!Type:` line sets the type of the records that follow it, until the next header. Any other header,
+  or an unknown type, gives the records that follow a `null` type: `!Account`, `!Option:AutoSwitch`, `!Type:Cat`,
+  `!Type:Memorized`… The type values are listed in [Types](/reference/enums/#types).
+- **Amounts**: the `,` thousands separators are removed, then the value is cast to `float`. The decimal separator must
+  be a dot: `1.234,50` reads as `1.2345`. When a record has both a `T` and a `U` line, the last one wins.
+- **The UTF-8 BOM** is removed, wherever it is.
+- **Ignored lines**: the check number (`N`), the splits (`S`, `$`, `E`, `%`), the investment fields (`Y`, `I`, `Q`,
+  `O`), the reimbursable flag (`F`), the budget (`B`) and the invoice fields (`X…`). The
+  [field reference](/reference/enums/#detailitems) lists what is read and what is written.
+
+## Dates
+
+The parser replaces the `'` year separator with `/` and spaces with `0` (`1/ 1/ 0` becomes `1/01/00`), then tries
+`d/m/y`, `y-m-d`, `d/m/Y` and `Y-m-d`, and keeps the first that matches:
+
+<Example name="dates" />
+
+:::caution[Day before month]
+Dates are read day first. The `M/D/Y` dates of US Quicken exports are read as `D/M/Y`, and PHP rolls the overflowing
+month over: `01/31/2026` becomes 1 July 2028, without an error. Invalid days roll over too (`31/02/2026` is 3 March).
+A value no format matches leaves the date `null`.
+:::
+
+The time of the dates is the time the file was parsed, not midnight: compare them with `format('Y-m-d')`, or reset it
+with `setTime(0, 0)`. Transactions with the same date string share one `DateTimeImmutable` instance.
+
+## Raw record
+
+Each parsed transaction keeps the lines it was read from in its public `$_raw` property, prefixed with its `!Type:`
+header, for debugging and logs. It is `null` on the transactions you build yourself. Its exact format is not part of
+the API.

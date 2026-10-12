@@ -120,6 +120,15 @@ The project uses PHPUnit 11 with comprehensive test coverage:
 - `WriterTest`: Tests transaction collection, output generation, and file writing
 - `Enums/*Test`: Tests enum values and tryFrom() functionality
 
+## API Documentation
+
+**Always update documentation when adding or modifying public API**: `Parser`, `Transaction`, `Writer`, the enums, what the parser reads and the writer outputs, the exceptions.
+
+1. **`docs/`** — the documentation site (qif-library.silarhi.dev), built with Starlight: getting started, guides (parsing, writing, error handling), reference (classes, enums and QIF fields, exceptions), upgrading. Keep `README.md` short: update its features list or quick start only when they change.
+2. **Examples with real output** — `docs/examples/*.php` run with the library (from `docs/examples/`, Composer's autoloader prepended), and `php docs/scripts/render-examples.php` writes what they print to `docs/src/data/examples/*.txt`, which the pages show through `docs/src/components/Example.astro`. Re-run it after any change to an example or to the output of the library, and commit the result: the CI runs it with `--check`.
+3. **`CLAUDE.md`** — Architecture, Important Implementation Details.
+4. **`CHANGELOG.md`** — see below. A BC break also gets a section in `docs/src/content/docs/upgrading.md`.
+
 ## Changelog & Releases
 
 - **`CHANGELOG.md`** follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Every user-facing change gets an entry in the top section, titled with the next release, never a bare `[Unreleased]`: the next minor (e.g. `[2.1.0] - Unreleased`), or the next major for a BC break. Prefix breaking changes with **BC break:** and say what users must change. Skip dependency bumps, CI and tooling changes.
@@ -134,7 +143,8 @@ The project uses PHPUnit 11 with comprehensive test coverage:
 3. Add property and getter/setter to `Transaction` if needed
 4. Update `Transaction::__toString()` to output the field
 5. Write tests in `ParserTest` and `TransactionTest` for the new field
-6. Run PHPStan, PHPUnit, and PHP-CS-Fixer
+6. Document it in `docs/` (the guides, and the "Read" / "Written" columns of `docs/src/content/docs/reference/enums.md`), then run `php docs/scripts/render-examples.php`
+7. Run PHPStan, PHPUnit, and PHP-CS-Fixer
 
 ### Modifying Transaction Properties
 

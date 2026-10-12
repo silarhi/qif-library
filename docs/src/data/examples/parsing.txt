@@ -1,0 +1,33 @@
+{
+    "type": "BANK",
+    "date": "2026-01-03",
+    "amount": -1250,
+    "status": "RECONCILED",
+    "payee": "Example Property Rentals",
+    "address": "12 Sample Street",
+    "memo": "January rent",
+    "category": "Housing:Rent",
+    "splits": []
+}
+{
+    "type": "BANK",
+    "date": "2026-01-05",
+    "amount": 2400,
+    "status": "CLEARED",
+    "payee": "Acme Corp",
+    "address": null,
+    "memo": "Salary",
+    "category": "Income:Salary",
+    "splits": []
+}
+{
+    "type": "BANK",
+    "date": "2026-01-07",
+    "amount": -84.3,
+    "status": "NOT_CLEARED",
+    "payee": "Demo Grocery",
+    "address": null,
+    "memo": null,
+    "category": "Food",
+    "splits": []
+}

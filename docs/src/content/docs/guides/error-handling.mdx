@@ -1,0 +1,46 @@
+---
+title: Error handling
+description: The exceptions the library throws, and the input it accepts without an error.
+sidebar:
+    order: 3
+---
+
+import Example from '../../../components/Example.astro'
+
+## Exceptions
+
+- `Parser::parseFile()` throws a `RuntimeException` when the file does not exist or cannot be read
+- `Writer::saveToFile()` throws a `RuntimeException` when the directory is not writable or the file cannot be opened
+- `Transaction::addSplit()` throws an `Exception` when a split with the same name already exists
+
+The messages include the path or the split name:
+
+<Example name="errors" />
+
+The library has no exception classes of its own: catch `RuntimeException` around file operations. The full list,
+with every message, is in the [exceptions reference](/reference/exceptions/).
+
+## What does not throw
+
+The parser is lenient: malformed input gives `null` values or wrong ones, never an exception. Check what matters to
+you after parsing:
+
+| Input                                       | Result                                                         |
+| ------------------------------------------- | -------------------------------------------------------------- |
+| A date no format matches                    | `getDate()` returns `null`                                     |
+| A `M/D/Y` date (US exports), an invalid day | A wrong date, rolled over: see [Dates](/guides/parsing/#dates) |
+| A decimal comma (`1.234,50`)                | A wrong amount (`1.2345`)                                      |
+| An unknown `!Type:`, or another header      | `getType()` returns `null`                                     |
+| An unknown cleared status                   | `Status::NOT_CLEARED`                                          |
+| A last record without its closing `^`       | The record is dropped                                          |
+| Content that is not QIF at all              | No transactions, or transactions with `null` fields            |
+
+For instance, to reject the transactions without a valid date:
+
+```php
+foreach ($parser->getTransactions() as $transaction) {
+    if (null === $transaction->getDate()) {
+        throw new UnexpectedValueException('Transaction without a valid date: ' . $transaction->_raw);
+    }
+}
+```

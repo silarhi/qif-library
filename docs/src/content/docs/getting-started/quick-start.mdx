@@ -1,0 +1,44 @@
+---
+title: Quick start
+description: Parse a QIF file and write one, in a few lines.
+sidebar:
+    order: 2
+---
+
+import Example from '../../../components/Example.astro'
+
+## Parse a QIF file
+
+```php
+use Silarhi\Qif\Parser;
+
+$parser = Parser::parseFile('/path/to/export.qif');
+
+foreach ($parser->getTransactions() as $transaction) {
+    $transaction->getType();        // ?Types enum, e.g. Types::BANK
+    $transaction->getDate();        // ?DateTimeImmutable
+    $transaction->getAmount();      // ?float, e.g. -1234.5
+    $transaction->getDescription(); // ?string, the payee (P line)
+    $transaction->getStatus();      // Status enum
+}
+```
+
+To parse content you already have in memory, use the constructor and call `parse()`, which returns the transactions:
+
+```php
+$transactions = (new Parser($content))->parse();
+```
+
+Every getter, and what the parser reads or ignores, is in [Parsing QIF files](/guides/parsing/).
+
+## Write a QIF file
+
+Build `Transaction` objects, add them to a `Writer`, then print it or save it:
+
+<Example name="writing" />
+
+```php
+$writer->saveToFile('/path/to/export.qif'); // or write it to disk
+```
+
+The fields the writer outputs, and the ones it leaves out, are in [Writing QIF files](/guides/writing/).

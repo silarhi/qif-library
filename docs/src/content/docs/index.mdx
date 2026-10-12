@@ -1,0 +1,44 @@
+---
+title: QIF Library
+description: A PHP library to parse and write QIF (Quicken Interchange Format) files.
+template: splash
+hero:
+    tagline: Read Quicken Interchange Format exports into typed PHP objects, or generate QIF files from your own transactions.
+    actions:
+        - text: Get started
+          link: /getting-started/installation/
+          icon: right-arrow
+        - text: View on GitHub
+          link: https://github.com/silarhi/qif-library
+          icon: github
+          variant: minimal
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components'
+
+```bash
+composer require silarhi/qif-library
+```
+
+<CardGrid>
+    <Card title="Parser" icon="document">
+        Reads the date, amount, memo, cleared status, payee, address and category of every transaction.
+    </Card>
+    <Card title="Writer" icon="pencil">
+        Builds QIF output from `Transaction` objects, including split transactions.
+    </Card>
+    <Card title="Typed results" icon="list-format">
+        Dates as `DateTimeImmutable`, amounts as `float`, account types and cleared status as enums.
+    </Card>
+    <Card title="Lenient dates" icon="approve-check">
+        Accepts `Y-m-d`, `d/m/Y`, `y-m-d` and `d/m/y`, the `'` year separator and space-padded dates (`1/ 1/ 0`).
+    </Card>
+    <Card title="No dependencies" icon="rocket">
+        Plain PHP 8.2+. Works with Windows (`\r\n`) and Unix line endings, and strips the UTF-8 BOM.
+    </Card>
+</CardGrid>
+
+## Credits
+
+This library started as a fork of [mimographix/qif-library](https://github.com/MimoGraphix/qif-library) by Mário
+Čechovič.

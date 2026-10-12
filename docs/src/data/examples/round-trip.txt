@@ -1,0 +1,21 @@
+!Type:Bank
+D03/01/2026
+T-1250
+LHousing:Rent
+CX
+PExample Property Rentals
+^
+!Type:Bank
+D05/01/2026
+T2400
+LIncome:Salary
+Cc
+PAcme Corp
+^
+!Type:Bank
+D07/01/2026
+T-84.3
+LFood
+C
+PDemo Grocery
+^

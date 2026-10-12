@@ -25,6 +25,7 @@
         <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fsilarhi%2Fqif-library%2Fbadges%2Fcoverage.json&style=for-the-badge&labelColor=1a1a2e">
         <img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fsilarhi%2Fqif-library%2Fbadges%2Fcoverage.json&style=for-the-badge" alt="Coverage">
     </picture>
+</p>
 
 <h1 align="center">QIF Library</h1>
 
@@ -33,22 +34,22 @@
     Read Quicken Interchange Format exports into typed PHP objects, or generate QIF files from your own transactions.
 </p>
 
+<p align="center">
+    📖 <a href="https://qif-library.silarhi.dev"><strong>Documentation</strong></a>
+</p>
+
 ---
 
 ## Features
 
-- **Parser** — reads the date, amount, memo, cleared status, payee, address and category of every transaction
-- **Writer** — builds QIF output from `Transaction` objects, including split transactions
-- **Typed results** — dates as `DateTimeImmutable`, amounts as `float`, account types and cleared status as enums
-- **Lenient dates** — accepts `Y-m-d`, `d/m/Y`, `y-m-d` and `d/m/y`, the `'` year separator and space-padded dates
-  (`1/ 1/ 0`)
-- **No dependencies** — plain PHP, works with Windows (`\r\n`) and Unix line endings, strips the UTF-8 BOM
+- **Parser**: reads the date, amount, memo, cleared status, payee, address and category of every transaction
+- **Writer**: builds QIF output from `Transaction` objects, including split transactions
+- **Typed results**: dates as `DateTimeImmutable`, amounts as `float`, account types and cleared status as enums
+- **No dependencies**: plain PHP, Windows and Unix line endings, UTF-8 BOM stripped
 
 ## Requirements
 
-| Dependency | Version |
-| ---------- | ------- |
-| PHP        | 8.2+    |
+- PHP 8.2+
 
 ## Installation
 
@@ -56,104 +57,47 @@
 composer require silarhi/qif-library
 ```
 
-## Usage
-
-### Parse a QIF file
-
-```php
-use Silarhi\Qif\Parser;
-
-$parser = Parser::parseFile('/path/to/export.qif');
-
-foreach ($parser->getTransactions() as $transaction) {
-    $transaction->getType();        // Types enum, e.g. Types::BANK
-    $transaction->getDate();        // ?DateTimeImmutable
-    $transaction->getAmount();      // ?float, e.g. -1234.5
-    $transaction->getDescription(); // ?string, the payee (P line)
-    $transaction->getStatus();      // Status enum
-}
-```
-
-To parse content you already have in memory, use the constructor and call `parse()`, which returns the transactions:
-
-```php
-$transactions = (new Parser($content))->parse();
-```
-
-### What you get
-
-| Getter             | Type                 | QIF line | Notes                                                |
-| ------------------ | -------------------- | -------- | ---------------------------------------------------- |
-| `getType()`        | `?Types`             | `!Type:` | `CASH`, `BANK`, `CCARD`, `INVST`, `OTHA`, `OTHL`...  |
-| `getDate()`        | `?DateTimeImmutable` | `D`      |                                                      |
-| `getAmount()`      | `?float`             | `T`, `U` | Thousands separators (`,`) are removed               |
-| `getMemo()`        | `?string`            | `M`      |                                                      |
-| `getStatus()`      | `Status`             | `C`      | `RECONCILED` (`X`, `R`), `CLEARED` (`*`, `c`)        |
-| `getDescription()` | `?string`            | `P`      | Payee                                                |
-| `getAddress()`     | `?string`            | `A`      |                                                      |
-| `getCategory()`    | `?string`            | `L`      |                                                      |
-| `getSplits()`      | `array`              | `S`/`$`  | `['name' => ['amount' => float, 'memo' => ?string]]` |
-
-### Write a QIF file
+## Quick start
 
 ```php
 use Silarhi\Qif\Enums\Types;
+use Silarhi\Qif\Parser;
 use Silarhi\Qif\Transaction;
 use Silarhi\Qif\Writer;
 
-$transaction = (new Transaction(Types::CASH))
-    ->setDate(new DateTimeImmutable('2019-12-31'))
-    ->setDescription('INV666')
-    ->setAmount(18.99)
-    ->setCategory('Sales')
-    ->addSplit('Sales', 18)
-    ->addSplit('Tax', 0.99, 'VAT')
-    ->markAsReconciled();
+// Parse
+foreach (Parser::parseFile('/path/to/export.qif')->getTransactions() as $transaction) {
+    $transaction->getDate();        // ?DateTimeImmutable
+    $transaction->getAmount();      // ?float
+    $transaction->getDescription(); // ?string, the payee
+}
 
+// Write
 $writer = new Writer();
-$writer->addTransaction($transaction);
-
-echo $writer;                              // QIF content
-$writer->saveToFile('/path/to/export.qif'); // or write it to disk
+$writer->addTransaction(
+    (new Transaction(Types::BANK))
+        ->setDate(new DateTimeImmutable('2026-01-31'))
+        ->setDescription('Acme Corp')
+        ->setAmount(2400)
+        ->setCategory('Income:Salary')
+);
+$writer->saveToFile('/path/to/export.qif');
 ```
 
-The writer outputs the type, date (`d/m/Y`), amount, category, splits, cleared status and payee of each transaction.
+## Documentation
 
-### Error handling
+Everything else is on **[qif-library.silarhi.dev](https://qif-library.silarhi.dev)**:
 
-- `Parser::parseFile()` throws a `RuntimeException` when the file does not exist or cannot be read
-- `Writer::saveToFile()` throws a `RuntimeException` when the directory is not writable or the file cannot be opened
-- `Transaction::addSplit()` throws an `Exception` when a split with the same name already exists
-
-## Testing & Quality
-
-```bash
-# Install dependencies
-composer install
-
-# Run tests
-vendor/bin/phpunit
-
-# Static analysis (level: max)
-vendor/bin/phpstan analyse
-
-# Code style check
-vendor/bin/php-cs-fixer fix --dry-run --diff
-
-# Code style fix
-vendor/bin/php-cs-fixer fix
-
-# Code modernization check
-vendor/bin/rector process --dry-run
-```
+- [Installation](https://qif-library.silarhi.dev/getting-started/installation/) and [quick start](https://qif-library.silarhi.dev/getting-started/quick-start/)
+- Guides: [parsing QIF files](https://qif-library.silarhi.dev/guides/parsing/), [writing QIF files](https://qif-library.silarhi.dev/guides/writing/),
+  [error handling](https://qif-library.silarhi.dev/guides/error-handling/)
+- Reference: [classes](https://qif-library.silarhi.dev/reference/classes/), [enums and QIF fields](https://qif-library.silarhi.dev/reference/enums/),
+  [exceptions](https://qif-library.silarhi.dev/reference/exceptions/)
+- [Upgrading](https://qif-library.silarhi.dev/upgrading/) from `mimographix/qif-library` or from 1.x
 
 ## Contributing
 
-Contributions are welcome! Please make sure your changes pass all quality checks before submitting a pull request:
-
-```bash
-vendor/bin/phpunit && vendor/bin/phpstan analyse && vendor/bin/php-cs-fixer fix --dry-run --diff
-```
+See [CONTRIBUTING.md](CONTRIBUTING.md). Release notes are in [CHANGELOG.md](CHANGELOG.md).
 
 ## Credits
 

@@ -1,0 +1,86 @@
+---
+title: Writing QIF files
+description: Build Transaction objects and turn them into QIF content with the Writer.
+sidebar:
+    order: 2
+---
+
+import Example from '../../../components/Example.astro'
+
+## Build the transactions
+
+`new Transaction()` takes the account type, a [`Types`](/reference/enums/#types) case. Every setter returns the
+transaction, so they chain:
+
+```php
+use Silarhi\Qif\Enums\Types;
+use Silarhi\Qif\Transaction;
+
+$transaction = (new Transaction(Types::CASH))
+    ->setDate(new DateTimeImmutable('2019-12-31'))
+    ->setDescription('INV666')
+    ->setAmount(18.99)
+    ->setCategory('Sales')
+    ->addSplit('Sales', 18)
+    ->addSplit('Tax', 0.99, 'VAT')
+    ->markAsReconciled();
+```
+
+| Method                                                                          | Sets                                                 |
+| ------------------------------------------------------------------------------- | ---------------------------------------------------- |
+| `setDate(DateTimeImmutable $date)`                                              | The date (`D`)                                       |
+| `setAmount(float\|int\|string $float)`                                          | The amount (`T`), cast to `float`                    |
+| `setDescription(?string $description)`                                          | The payee (`P`)                                      |
+| `setCategory(?string $category)`                                                | The category (`L`), e.g. `Housing:Rent`              |
+| `addSplit(string $splitName, float\|int\|string $amount, ?string $memo = null)` | A split: category (`S`), amount (`$`) and memo (`E`) |
+| `removeSplit(string $splitName)`                                                | Removes a split, if there is one with that name      |
+| `setStatus(Status $status)`                                                     | The cleared status (`C`)                             |
+| `markAsReconciled()`                                                            | `setStatus(Status::RECONCILED)`                      |
+| `markAsCleared()`                                                               | `setStatus(Status::CLEARED)`                         |
+| `markAsNotCleared()`                                                            | `setStatus(Status::NOT_CLEARED)`, the default        |
+| `setMemo(?string $memo)`                                                        | The memo: kept on the object, not written            |
+| `setAddress(?string $address)`                                                  | The address: kept on the object, not written         |
+
+Splits are keyed by their category name: `addSplit()` throws an `Exception` when the transaction already has a split
+with that name. String amounts are cast with `(float)`, which stops at the first character that is not part of a
+number: pass `'1234.50'`, not `'1,234.50'` (read as `1.0`).
+
+## Write them
+
+`Writer::addTransaction()` collects the transactions. Casting the writer to a string (`echo $writer`,
+`(string) $writer`) returns the QIF content, and `saveToFile()` writes it to disk, replacing the file if it exists:
+
+<Example name="writing" />
+
+```php
+$writer->saveToFile('/path/to/export.qif'); // or write it to disk
+```
+
+`getTransactions()` returns the transactions added so far. `saveToFile()` throws a `RuntimeException` when the
+directory is not writable or the file cannot be opened: see [Error handling](/guides/error-handling/).
+
+## Output format
+
+The writer outputs the type, date (`d/m/Y`), amount, category, splits, cleared status and payee of each transaction,
+in this order, then `^`:
+
+- every transaction starts with its own `!Type:` line, empty when the type is `null`;
+- `null` fields are left out, empty strings are written (a bare `P` line);
+- the `C` line is always written, empty for `Status::NOT_CLEARED`, `c` for `CLEARED` and `X` for `RECONCILED`;
+- amounts use PHP's float to string conversion: `2400`, `-84.3`, no thousands separator;
+- lines end with `PHP_EOL`, and there is no line break after the last `^`.
+
+The memo, the address and every other field are not written. Each transaction is a `Stringable` too: `(string) $transaction`
+returns its own record.
+
+:::note[Dates are day first]
+The writer formats dates as `d/m/Y`, the way the [parser](/guides/parsing/#dates) reads them. Make sure the
+application importing the file expects that order.
+:::
+
+## Round trip
+
+A parsed transaction can be written back as is. What the writer leaves out is lost: here the memo, the address and the
+splits of `export.qif` (the parser does not read the splits), and the amounts lose their formatting:
+
+<Example name="round-trip" input="export.qif" />
