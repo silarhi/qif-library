@@ -1,36 +1,51 @@
 {
-  "name": "silarhi/qif-library",
-  "description": "A PHP library to parse and write QIF (Quicken Interchange Format) files",
-  "type": "library",
-  "keywords": [
-    "qif",
-    "writer",
-    "parser"
-  ],
-  "license": "MIT",
-  "authors": [
-    {
-      "name": "SILARHI",
-      "email": "hello@silarhi.fr"
+    "name": "silarhi/qif-library",
+    "description": "A PHP library to parse and write QIF (Quicken Interchange Format) files",
+    "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "qif",
+        "quicken",
+        "parser",
+        "writer"
+    ],
+    "authors": [
+        {
+            "name": "SILARHI",
+            "email": "hello@silarhi.fr"
+        }
+    ],
+    "require": {
+        "php": ">=8.2"
+    },
+    "require-dev": {
+        "ergebnis/composer-normalize": "^2.54.0",
+        "friendsofphp/php-cs-fixer": "^3.95.27",
+        "phpstan/extension-installer": "^1.4.3",
+        "phpstan/phpstan": "^2.3.1",
+        "phpstan/phpstan-strict-rules": "^2.1.0",
+        "phpunit/phpunit": "^11.5.57 || ^12.0 || ^13.0",
+        "rector/rector": "^2.7.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Silarhi\\Qif\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Silarhi\\Qif\\Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "ergebnis/composer-normalize": true,
+            "phpstan/extension-installer": true
+        },
+        "audit": {
+            "block-insecure": false
+        },
+        "bump-after-update": "dev",
+        "sort-packages": true
     }
-  ],
-  "autoload": {
-    "psr-4": {
-      "Silarhi\\Qif\\": "src/"
-    }
-  },
-  "autoload-dev": {
-    "psr-4": {
-      "Silarhi\\Qif\\Tests\\": "tests/"
-    }
-  },
-  "require": {
-    "php": "^8.2"
-  },
-  "require-dev": {
-    "friendsofphp/php-cs-fixer": "^3.90",
-    "phpstan/phpstan": "^2.1",
-    "phpunit/phpunit": "^11.5",
-    "rector/rector": "^2.2"
-  }
 }

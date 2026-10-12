@@ -32,8 +32,8 @@ final class WriterTest extends TestCase
 
         $writer->addTransaction($transaction);
 
-        $this->assertCount(1, $writer->getTransactions());
-        $this->assertSame($transaction, $writer->getTransactions()[0]);
+        self::assertCount(1, $writer->getTransactions());
+        self::assertSame($transaction, $writer->getTransactions()[0]);
     }
 
     public function testAddMultipleTransactions(): void
@@ -46,16 +46,16 @@ final class WriterTest extends TestCase
         $writer->addTransaction($transaction2);
 
         $transactions = $writer->getTransactions();
-        $this->assertCount(2, $transactions);
-        $this->assertSame($transaction1, $transactions[0]);
-        $this->assertSame($transaction2, $transactions[1]);
+        self::assertCount(2, $transactions);
+        self::assertSame($transaction1, $transactions[0]);
+        self::assertSame($transaction2, $transactions[1]);
     }
 
     public function testGetTransactionsReturnsEmptyArrayInitially(): void
     {
         $writer = new Writer();
 
-        $this->assertSame([], $writer->getTransactions());
+        self::assertSame([], $writer->getTransactions());
     }
 
     public function testToStringWithSingleTransaction(): void
@@ -72,11 +72,11 @@ final class WriterTest extends TestCase
 
         $output = (string) $writer;
 
-        $this->assertStringContainsString('!Type:Bank', $output);
-        $this->assertStringContainsString('D25/12/2023', $output);
-        $this->assertStringContainsString('T-1234.5', $output);
-        $this->assertStringContainsString('PStandard Oil', $output);
-        $this->assertStringContainsString('^', $output);
+        self::assertStringContainsString('!Type:Bank', $output);
+        self::assertStringContainsString('D25/12/2023', $output);
+        self::assertStringContainsString('T-1234.5', $output);
+        self::assertStringContainsString('PStandard Oil', $output);
+        self::assertStringContainsString('^', $output);
     }
 
     public function testToStringWithMultipleTransactions(): void
@@ -98,13 +98,13 @@ final class WriterTest extends TestCase
 
         $output = (string) $writer;
 
-        $this->assertStringContainsString('!Type:Bank', $output);
-        $this->assertStringContainsString('PFirst', $output);
-        $this->assertStringContainsString('!Type:Cash', $output);
-        $this->assertStringContainsString('PSecond', $output);
+        self::assertStringContainsString('!Type:Bank', $output);
+        self::assertStringContainsString('PFirst', $output);
+        self::assertStringContainsString('!Type:Cash', $output);
+        self::assertStringContainsString('PSecond', $output);
 
         // Both transactions should have their own end markers
-        $this->assertSame(2, substr_count($output, '^'));
+        self::assertSame(2, substr_count($output, '^'));
     }
 
     public function testToStringWithEmptyWriter(): void
@@ -113,7 +113,7 @@ final class WriterTest extends TestCase
 
         $output = (string) $writer;
 
-        $this->assertSame('', $output);
+        self::assertSame('', $output);
     }
 
     public function testSaveToFile(): void
@@ -129,12 +129,12 @@ final class WriterTest extends TestCase
         try {
             $writer->saveToFile($tempFile);
 
-            $this->assertFileExists($tempFile);
+            self::assertFileExists($tempFile);
 
             $content = file_get_contents($tempFile);
-            $this->assertIsString($content);
-            $this->assertStringContainsString('!Type:Bank', $content);
-            $this->assertStringContainsString('T100', $content);
+            self::assertIsString($content);
+            self::assertStringContainsString('!Type:Bank', $content);
+            self::assertStringContainsString('T100', $content);
         } finally {
             if (file_exists($tempFile)) {
                 unlink($tempFile);
@@ -163,10 +163,10 @@ final class WriterTest extends TestCase
         $writer->addTransaction($transaction);
 
         // Test that Writer implements Stringable
-        $this->assertInstanceOf(Stringable::class, $writer);
+        self::assertInstanceOf(Stringable::class, $writer);
 
         // Test implicit string conversion
         $output = (string) $writer;
-        $this->assertStringContainsString('T100', $output);
+        self::assertStringContainsString('T100', $output);
     }
 }

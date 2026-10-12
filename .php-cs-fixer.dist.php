@@ -28,14 +28,11 @@ $finder = PhpCsFixer\Finder::create()
     ->append([
         __FILE__,
         __DIR__ . '/rector.php',
-    ])
-;
+    ]);
 
 $config = new PhpCsFixer\Config();
 
 return $config
-    ->setParallelConfig(PhpCsFixer\Runner\Parallel\ParallelConfigFactory::detect())
-    ->setCacheFile(__DIR__ . '/var/tools/.php-cs-fixer.cache')
     ->setRules([
         '@Symfony' => true,
         '@Symfony:risky' => true,

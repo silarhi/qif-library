@@ -129,7 +129,7 @@ class Parser
                     $transaction->_raw = $transactionRaw;
                     $this->transactions[] = $transaction;
                     $transaction = new Transaction($lastType);
-                    $transactionRaw = '!Type:' . (null !== $lastType ? $lastType->value : '');
+                    $transactionRaw = '!Type:' . ($lastType->value ?? '');
                     break;
             }
 

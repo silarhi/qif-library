@@ -46,7 +46,7 @@ class Writer implements Stringable
             $output[] = (string) $transaction;
         }
 
-        return implode(\PHP_EOL, array_filter($output));
+        return implode(\PHP_EOL, array_filter($output, static fn (string $transaction): bool => '' !== $transaction));
     }
 
     public function saveToFile(string $filePath): void

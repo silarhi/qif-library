@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Silarhi\Qif\Tests\Unit\Enums;
 
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Silarhi\Qif\Enums\DetailItems;
 
@@ -22,57 +23,57 @@ final class DetailItemsTest extends TestCase
 {
     public function testCommonFieldValues(): void
     {
-        $this->assertSame('D', DetailItems::D->value);
-        $this->assertSame('T', DetailItems::T->value);
-        $this->assertSame('U', DetailItems::U->value);
-        $this->assertSame('M', DetailItems::M->value);
-        $this->assertSame('C', DetailItems::C->value);
+        self::assertSame('D', DetailItems::D->value);
+        self::assertSame('T', DetailItems::T->value);
+        self::assertSame('U', DetailItems::U->value);
+        self::assertSame('M', DetailItems::M->value);
+        self::assertSame('C', DetailItems::C->value);
     }
 
     public function testBankingFieldValues(): void
     {
-        $this->assertSame('N', DetailItems::N->value);
-        $this->assertSame('A', DetailItems::A->value);
-        $this->assertSame('L', DetailItems::L->value);
-        $this->assertSame('P', DetailItems::P->value);
-        $this->assertSame('F', DetailItems::F->value);
+        self::assertSame('N', DetailItems::N->value);
+        self::assertSame('A', DetailItems::A->value);
+        self::assertSame('L', DetailItems::L->value);
+        self::assertSame('P', DetailItems::P->value);
+        self::assertSame('F', DetailItems::F->value);
     }
 
     public function testSplitFieldValues(): void
     {
-        $this->assertSame('$', DetailItems::AMNT->value);
-        $this->assertSame('S', DetailItems::S->value);
-        $this->assertSame('E', DetailItems::E->value);
-        $this->assertSame('%', DetailItems::PERC->value);
+        self::assertSame('$', DetailItems::AMNT->value);
+        self::assertSame('S', DetailItems::S->value);
+        self::assertSame('E', DetailItems::E->value);
+        self::assertSame('%', DetailItems::PERC->value);
     }
 
     public function testInvestmentFieldValues(): void
     {
-        $this->assertSame('Y', DetailItems::Y->value);
-        $this->assertSame('I', DetailItems::I->value);
-        $this->assertSame('Q', DetailItems::Q->value);
-        $this->assertSame('O', DetailItems::O->value);
+        self::assertSame('Y', DetailItems::Y->value);
+        self::assertSame('I', DetailItems::I->value);
+        self::assertSame('Q', DetailItems::Q->value);
+        self::assertSame('O', DetailItems::O->value);
     }
 
     public function testCategoryFieldValue(): void
     {
-        $this->assertSame('B', DetailItems::B->value);
+        self::assertSame('B', DetailItems::B->value);
     }
 
     public function testInvoiceFieldValues(): void
     {
-        $this->assertSame('X', DetailItems::X->value);
-        $this->assertSame('XA', DetailItems::XA->value);
-        $this->assertSame('XI', DetailItems::XI->value);
-        $this->assertSame('XE', DetailItems::XE->value);
-        $this->assertSame('XC', DetailItems::XC->value);
-        $this->assertSame('XR', DetailItems::XR->value);
-        $this->assertSame('XT', DetailItems::XT->value);
-        $this->assertSame('XS', DetailItems::XS->value);
-        $this->assertSame('XN', DetailItems::XN->value);
-        $this->assertSame('X#', DetailItems::X_HASH->value);
-        $this->assertSame('X$', DetailItems::X_AMNT->value);
-        $this->assertSame('XF', DetailItems::XF->value);
+        self::assertSame('X', DetailItems::X->value);
+        self::assertSame('XA', DetailItems::XA->value);
+        self::assertSame('XI', DetailItems::XI->value);
+        self::assertSame('XE', DetailItems::XE->value);
+        self::assertSame('XC', DetailItems::XC->value);
+        self::assertSame('XR', DetailItems::XR->value);
+        self::assertSame('XT', DetailItems::XT->value);
+        self::assertSame('XS', DetailItems::XS->value);
+        self::assertSame('XN', DetailItems::XN->value);
+        self::assertSame('X#', DetailItems::X_HASH->value);
+        self::assertSame('X$', DetailItems::X_AMNT->value);
+        self::assertSame('XF', DetailItems::XF->value);
     }
 
     public function testAllCasesExist(): void
@@ -80,18 +81,27 @@ final class DetailItemsTest extends TestCase
         $cases = DetailItems::cases();
 
         // We have 31 detail item cases
-        $this->assertCount(31, $cases);
+        self::assertCount(31, $cases);
     }
 
     public function testTryFromValidValues(): void
     {
-        $this->assertSame(DetailItems::D, DetailItems::tryFrom('D'));
-        $this->assertSame(DetailItems::AMNT, DetailItems::tryFrom('$'));
-        $this->assertSame(DetailItems::X_HASH, DetailItems::tryFrom('X#'));
+        self::assertSame(DetailItems::D, DetailItems::tryFrom('D'));
+        self::assertSame(DetailItems::AMNT, DetailItems::tryFrom('$'));
+        self::assertSame(DetailItems::X_HASH, DetailItems::tryFrom('X#'));
     }
 
-    public function testTryFromInvalidValue(): void
+    #[DataProvider('provideInvalidValues')]
+    public function testTryFromInvalidValue(string $value): void
     {
-        $this->assertNull(DetailItems::tryFrom('Z'));
+        self::assertNull(DetailItems::tryFrom($value));
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function provideInvalidValues(): iterable
+    {
+        yield 'unknown code' => ['Z'];
     }
 }

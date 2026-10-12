@@ -152,7 +152,7 @@ class Transaction implements Stringable
             '^',
         ];
 
-        return implode(\PHP_EOL, array_filter($output));
+        return implode(\PHP_EOL, array_filter($output, static fn (string|false $line): bool => false !== $line && '' !== $line));
     }
 
     private function renderDateLineIfNotNull(): string|false
@@ -186,7 +186,7 @@ class Transaction implements Stringable
             $output[] = $this->renderIfNotNull(DetailItems::E->value, $split['memo'] ?? null);
         }
 
-        return implode(\PHP_EOL, array_filter($output));
+        return implode(\PHP_EOL, array_filter($output, static fn (string|false $line): bool => false !== $line));
     }
 
     public function setAddress(?string $address): self

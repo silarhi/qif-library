@@ -42,8 +42,8 @@ QIF;
         $parser = new Parser($qifContent);
         $transactions = $parser->parse();
 
-        $this->assertCount(1, $transactions);
-        $this->assertInstanceOf(Transaction::class, $transactions[0]);
+        self::assertCount(1, $transactions);
+        self::assertInstanceOf(Transaction::class, $transactions[0]);
     }
 
     public function testParseTransactionFields(): void
@@ -65,14 +65,14 @@ QIF;
 
         $transaction = $transactions[0];
 
-        $this->assertSame(Types::BANK, $transaction->getType());
-        $this->assertSame('2023-12-25', $transaction->getDate()?->format('Y-m-d'));
-        $this->assertSame(-1234.50, $transaction->getAmount());
-        $this->assertSame(Status::RECONCILED, $transaction->getStatus());
-        $this->assertSame('Standard Oil', $transaction->getDescription());
-        $this->assertSame('Main Street 123', $transaction->getAddress());
-        $this->assertSame('Fuel for car', $transaction->getMemo());
-        $this->assertSame('Fuel:Car', $transaction->getCategory());
+        self::assertSame(Types::BANK, $transaction->getType());
+        self::assertSame('2023-12-25', $transaction->getDate()?->format('Y-m-d'));
+        self::assertSame(-1234.50, $transaction->getAmount());
+        self::assertSame(Status::RECONCILED, $transaction->getStatus());
+        self::assertSame('Standard Oil', $transaction->getDescription());
+        self::assertSame('Main Street 123', $transaction->getAddress());
+        self::assertSame('Fuel for car', $transaction->getMemo());
+        self::assertSame('Fuel:Car', $transaction->getCategory());
     }
 
     public function testParseMultipleTransactions(): void
@@ -96,10 +96,10 @@ QIF;
         $parser = new Parser($qifContent);
         $transactions = $parser->parse();
 
-        $this->assertCount(3, $transactions);
-        $this->assertSame(-100.0, $transactions[0]->getAmount());
-        $this->assertSame(-200.0, $transactions[1]->getAmount());
-        $this->assertSame(-300.0, $transactions[2]->getAmount());
+        self::assertCount(3, $transactions);
+        self::assertSame(-100.0, $transactions[0]->getAmount());
+        self::assertSame(-200.0, $transactions[1]->getAmount());
+        self::assertSame(-300.0, $transactions[2]->getAmount());
     }
 
     public function testParseClearedStatusVariations(): void
@@ -131,11 +131,11 @@ QIF;
         $parser = new Parser($qifContent);
         $transactions = $parser->parse();
 
-        $this->assertSame(Status::RECONCILED, $transactions[0]->getStatus());
-        $this->assertSame(Status::RECONCILED, $transactions[1]->getStatus());
-        $this->assertSame(Status::CLEARED, $transactions[2]->getStatus());
-        $this->assertSame(Status::CLEARED, $transactions[3]->getStatus());
-        $this->assertSame(Status::NOT_CLEARED, $transactions[4]->getStatus());
+        self::assertSame(Status::RECONCILED, $transactions[0]->getStatus());
+        self::assertSame(Status::RECONCILED, $transactions[1]->getStatus());
+        self::assertSame(Status::CLEARED, $transactions[2]->getStatus());
+        self::assertSame(Status::CLEARED, $transactions[3]->getStatus());
+        self::assertSame(Status::NOT_CLEARED, $transactions[4]->getStatus());
     }
 
     public function testParseAmountWithCommas(): void
@@ -150,7 +150,7 @@ QIF;
         $parser = new Parser($qifContent);
         $transactions = $parser->parse();
 
-        $this->assertSame(1234567.89, $transactions[0]->getAmount());
+        self::assertSame(1234567.89, $transactions[0]->getAmount());
     }
 
     public function testParseUAmountField(): void
@@ -165,7 +165,7 @@ QIF;
         $parser = new Parser($qifContent);
         $transactions = $parser->parse();
 
-        $this->assertSame(-500.0, $transactions[0]->getAmount());
+        self::assertSame(-500.0, $transactions[0]->getAmount());
     }
 
     public function testParseDateWithApostrophe(): void
@@ -180,7 +180,7 @@ QIF;
         $parser = new Parser($qifContent);
         $transactions = $parser->parse();
 
-        $this->assertSame('2023-12-25', $transactions[0]->getDate()?->format('Y-m-d'));
+        self::assertSame('2023-12-25', $transactions[0]->getDate()?->format('Y-m-d'));
     }
 
     public function testParseDateWithTwoDigitYear(): void
@@ -195,7 +195,7 @@ QIF;
         $parser = new Parser($qifContent);
         $transactions = $parser->parse();
 
-        $this->assertSame('2023-12-25', $transactions[0]->getDate()?->format('Y-m-d'));
+        self::assertSame('2023-12-25', $transactions[0]->getDate()?->format('Y-m-d'));
     }
 
     public function testParseDateWithFourDigitYear(): void
@@ -210,7 +210,7 @@ QIF;
         $parser = new Parser($qifContent);
         $transactions = $parser->parse();
 
-        $this->assertSame('2023-12-25', $transactions[0]->getDate()?->format('Y-m-d'));
+        self::assertSame('2023-12-25', $transactions[0]->getDate()?->format('Y-m-d'));
     }
 
     public function testParseFileStatic(): void
@@ -220,8 +220,8 @@ QIF;
         $parser = Parser::parseFile($filePath);
         $transactions = $parser->getTransactions();
 
-        $this->assertGreaterThan(0, count($transactions));
-        $this->assertInstanceOf(Transaction::class, $transactions[0]);
+        self::assertGreaterThan(0, count($transactions));
+        self::assertInstanceOf(Transaction::class, $transactions[0]);
     }
 
     public function testParseFileThrowsExceptionForInvalidPath(): void
@@ -244,8 +244,8 @@ QIF;
         $parser = new Parser($qifContent);
         $transactions = $parser->parse();
 
-        $this->assertCount(1, $transactions);
-        $this->assertSame(-100.0, $transactions[0]->getAmount());
+        self::assertCount(1, $transactions);
+        self::assertSame(-100.0, $transactions[0]->getAmount());
     }
 
     public function testParseWithCustomSeparator(): void
@@ -255,8 +255,8 @@ QIF;
         $parser = new Parser($qifContent, "\n");
         $transactions = $parser->parse();
 
-        $this->assertCount(1, $transactions);
-        $this->assertSame(-100.0, $transactions[0]->getAmount());
+        self::assertCount(1, $transactions);
+        self::assertSame(-100.0, $transactions[0]->getAmount());
     }
 
     public function testParseUnknownTypeReturnsNull(): void
@@ -271,8 +271,8 @@ QIF;
         $parser = new Parser($qifContent);
         $transactions = $parser->parse();
 
-        $this->assertCount(1, $transactions);
-        $this->assertNull($transactions[0]->getType());
+        self::assertCount(1, $transactions);
+        self::assertNull($transactions[0]->getType());
     }
 
     public function testParseIgnoresOField(): void
@@ -288,9 +288,9 @@ QIF;
         $parser = new Parser($qifContent);
         $transactions = $parser->parse();
 
-        $this->assertCount(1, $transactions);
+        self::assertCount(1, $transactions);
         // O field (commission) is currently ignored in parsing
-        $this->assertSame(-100.0, $transactions[0]->getAmount());
+        self::assertSame(-100.0, $transactions[0]->getAmount());
     }
 
     public function testGetTransactionsBeforeParseReturnsEmpty(): void
@@ -299,7 +299,7 @@ QIF;
 
         $transactions = $parser->getTransactions();
 
-        $this->assertCount(0, $transactions);
+        self::assertCount(0, $transactions);
     }
 
     public function testParseStoresRawContent(): void
@@ -314,7 +314,7 @@ QIF;
         $parser = new Parser($qifContent);
         $transactions = $parser->parse();
 
-        $this->assertNotNull($transactions[0]->_raw);
-        $this->assertStringContainsString('!Type:Bank', $transactions[0]->_raw);
+        self::assertNotNull($transactions[0]->_raw);
+        self::assertStringContainsString('!Type:Bank', $transactions[0]->_raw);
     }
 }

@@ -28,14 +28,14 @@ final class TransactionTest extends TestCase
     {
         $transaction = new Transaction(Types::BANK);
 
-        $this->assertSame(Types::BANK, $transaction->getType());
+        self::assertSame(Types::BANK, $transaction->getType());
     }
 
     public function testConstructorSetsDefaultStatus(): void
     {
         $transaction = new Transaction(Types::BANK);
 
-        $this->assertSame(Status::NOT_CLEARED, $transaction->getStatus());
+        self::assertSame(Status::NOT_CLEARED, $transaction->getStatus());
     }
 
     public function testSetAndGetDate(): void
@@ -45,8 +45,8 @@ final class TransactionTest extends TestCase
 
         $result = $transaction->setDate($date);
 
-        $this->assertSame($transaction, $result, 'Should return self for fluent interface');
-        $this->assertSame($date, $transaction->getDate());
+        self::assertSame($transaction, $result, 'Should return self for fluent interface');
+        self::assertSame($date, $transaction->getDate());
     }
 
     public function testSetAndGetDescription(): void
@@ -55,8 +55,8 @@ final class TransactionTest extends TestCase
 
         $result = $transaction->setDescription('Test payment');
 
-        $this->assertSame($transaction, $result);
-        $this->assertSame('Test payment', $transaction->getDescription());
+        self::assertSame($transaction, $result);
+        self::assertSame('Test payment', $transaction->getDescription());
     }
 
     public function testSetAndGetAmount(): void
@@ -65,8 +65,8 @@ final class TransactionTest extends TestCase
 
         $result = $transaction->setAmount(123.45);
 
-        $this->assertSame($transaction, $result);
-        $this->assertSame(123.45, $transaction->getAmount());
+        self::assertSame($transaction, $result);
+        self::assertSame(123.45, $transaction->getAmount());
     }
 
     public function testSetAmountAcceptsIntAndString(): void
@@ -74,10 +74,10 @@ final class TransactionTest extends TestCase
         $transaction = new Transaction(Types::BANK);
 
         $transaction->setAmount(100);
-        $this->assertSame(100.0, $transaction->getAmount());
+        self::assertSame(100.0, $transaction->getAmount());
 
         $transaction->setAmount('250.75');
-        $this->assertSame(250.75, $transaction->getAmount());
+        self::assertSame(250.75, $transaction->getAmount());
     }
 
     public function testSetAndGetCategory(): void
@@ -86,8 +86,8 @@ final class TransactionTest extends TestCase
 
         $result = $transaction->setCategory('Fuel:Car');
 
-        $this->assertSame($transaction, $result);
-        $this->assertSame('Fuel:Car', $transaction->getCategory());
+        self::assertSame($transaction, $result);
+        self::assertSame('Fuel:Car', $transaction->getCategory());
     }
 
     public function testSetAndGetAddress(): void
@@ -96,8 +96,8 @@ final class TransactionTest extends TestCase
 
         $result = $transaction->setAddress('123 Main St');
 
-        $this->assertSame($transaction, $result);
-        $this->assertSame('123 Main St', $transaction->getAddress());
+        self::assertSame($transaction, $result);
+        self::assertSame('123 Main St', $transaction->getAddress());
     }
 
     public function testSetAndGetMemo(): void
@@ -106,8 +106,8 @@ final class TransactionTest extends TestCase
 
         $result = $transaction->setMemo('Test memo');
 
-        $this->assertSame($transaction, $result);
-        $this->assertSame('Test memo', $transaction->getMemo());
+        self::assertSame($transaction, $result);
+        self::assertSame('Test memo', $transaction->getMemo());
     }
 
     public function testSetStatus(): void
@@ -116,8 +116,8 @@ final class TransactionTest extends TestCase
 
         $result = $transaction->setStatus(Status::CLEARED);
 
-        $this->assertSame($transaction, $result);
-        $this->assertSame(Status::CLEARED, $transaction->getStatus());
+        self::assertSame($transaction, $result);
+        self::assertSame(Status::CLEARED, $transaction->getStatus());
     }
 
     public function testMarkAsReconciled(): void
@@ -126,8 +126,8 @@ final class TransactionTest extends TestCase
 
         $result = $transaction->markAsReconciled();
 
-        $this->assertSame($transaction, $result);
-        $this->assertSame(Status::RECONCILED, $transaction->getStatus());
+        self::assertSame($transaction, $result);
+        self::assertSame(Status::RECONCILED, $transaction->getStatus());
     }
 
     public function testMarkAsCleared(): void
@@ -136,8 +136,8 @@ final class TransactionTest extends TestCase
 
         $result = $transaction->markAsCleared();
 
-        $this->assertSame($transaction, $result);
-        $this->assertSame(Status::CLEARED, $transaction->getStatus());
+        self::assertSame($transaction, $result);
+        self::assertSame(Status::CLEARED, $transaction->getStatus());
     }
 
     public function testMarkAsNotCleared(): void
@@ -147,8 +147,8 @@ final class TransactionTest extends TestCase
 
         $result = $transaction->markAsNotCleared();
 
-        $this->assertSame($transaction, $result);
-        $this->assertSame(Status::NOT_CLEARED, $transaction->getStatus());
+        self::assertSame($transaction, $result);
+        self::assertSame(Status::NOT_CLEARED, $transaction->getStatus());
     }
 
     public function testAddSplit(): void
@@ -157,12 +157,12 @@ final class TransactionTest extends TestCase
 
         $result = $transaction->addSplit('Product', 100.50, 'Product sale');
 
-        $this->assertSame($transaction, $result);
+        self::assertSame($transaction, $result);
 
         $splits = $transaction->getSplits();
-        $this->assertArrayHasKey('Product', $splits);
-        $this->assertSame(100.5, $splits['Product']['amount']);
-        $this->assertSame('Product sale', $splits['Product']['memo']);
+        self::assertArrayHasKey('Product', $splits);
+        self::assertSame(100.5, $splits['Product']['amount']);
+        self::assertSame('Product sale', $splits['Product']['memo']);
     }
 
     public function testAddSplitWithNullMemo(): void
@@ -172,9 +172,9 @@ final class TransactionTest extends TestCase
         $transaction->addSplit('Tax', 20.0);
 
         $splits = $transaction->getSplits();
-        $this->assertArrayHasKey('Tax', $splits);
-        $this->assertSame(20.0, $splits['Tax']['amount']);
-        $this->assertNull($splits['Tax']['memo']);
+        self::assertArrayHasKey('Tax', $splits);
+        self::assertSame(20.0, $splits['Tax']['amount']);
+        self::assertNull($splits['Tax']['memo']);
     }
 
     public function testAddSplitThrowsExceptionForDuplicateName(): void
@@ -196,11 +196,11 @@ final class TransactionTest extends TestCase
 
         $result = $transaction->removeSplit('Product');
 
-        $this->assertSame($transaction, $result);
+        self::assertSame($transaction, $result);
 
         $splits = $transaction->getSplits();
-        $this->assertArrayNotHasKey('Product', $splits);
-        $this->assertArrayHasKey('Tax', $splits);
+        self::assertArrayNotHasKey('Product', $splits);
+        self::assertArrayHasKey('Tax', $splits);
     }
 
     public function testToStringWithFullTransaction(): void
@@ -217,13 +217,13 @@ final class TransactionTest extends TestCase
 
         $output = (string) $transaction;
 
-        $this->assertStringContainsString('!Type:Bank', $output);
-        $this->assertStringContainsString('D25/12/2023', $output);
-        $this->assertStringContainsString('T-1234.5', $output);
-        $this->assertStringContainsString('LFuel:Car', $output);
-        $this->assertStringContainsString('CX', $output);
-        $this->assertStringContainsString('PStandard Oil', $output);
-        $this->assertStringContainsString('^', $output);
+        self::assertStringContainsString('!Type:Bank', $output);
+        self::assertStringContainsString('D25/12/2023', $output);
+        self::assertStringContainsString('T-1234.5', $output);
+        self::assertStringContainsString('LFuel:Car', $output);
+        self::assertStringContainsString('CX', $output);
+        self::assertStringContainsString('PStandard Oil', $output);
+        self::assertStringContainsString('^', $output);
     }
 
     public function testToStringWithSplits(): void
@@ -235,10 +235,10 @@ final class TransactionTest extends TestCase
 
         $output = (string) $transaction;
 
-        $this->assertStringContainsString('SProduct', $output);
-        $this->assertStringContainsString('$100', $output);
-        $this->assertStringContainsString('STax', $output);
-        $this->assertStringContainsString('$20', $output);
+        self::assertStringContainsString('SProduct', $output);
+        self::assertStringContainsString('$100', $output);
+        self::assertStringContainsString('STax', $output);
+        self::assertStringContainsString('$20', $output);
     }
 
     public function testToStringWithNullType(): void
@@ -248,8 +248,8 @@ final class TransactionTest extends TestCase
 
         $output = (string) $transaction;
 
-        $this->assertStringContainsString('!Type:', $output);
-        $this->assertStringContainsString('T100', $output);
+        self::assertStringContainsString('!Type:', $output);
+        self::assertStringContainsString('T100', $output);
     }
 
     public function testFluentInterface(): void
@@ -267,6 +267,6 @@ final class TransactionTest extends TestCase
             ->markAsCleared()
             ->addSplit('Item', 100.0);
 
-        $this->assertSame($transaction, $result);
+        self::assertSame($transaction, $result);
     }
 }

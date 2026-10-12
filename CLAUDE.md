@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a PHP library for parsing and writing QIF (Quicken Interchange Format) files. The library provides two main components: a Parser for reading QIF files and a Writer for generating QIF output.
+`silarhi/qif-library` (namespace `Silarhi\Qif`) is a PHP library for parsing and writing QIF (Quicken Interchange Format) files. The library provides two main components: a Parser for reading QIF files and a Writer for generating QIF output. Published on Packagist under MIT license; originally forked from `mimographix/qif-library`.
 
 ## Architecture
 
@@ -47,13 +47,13 @@ vendor/bin/phpunit --coverage-html var/coverage
 ### Code Quality Tools
 
 ```bash
-# Run PHPStan (level 9) - includes src/ and tests/
+# Run PHPStan (level max + strict-rules) - includes src/ and tests/
 vendor/bin/phpstan analyze
 
 # Fix code style with PHP-CS-Fixer
 vendor/bin/php-cs-fixer fix
 
-# Run Rector for PHP 8.2+ refactoring
+# Run Rector (PHP sets + PHPUnit composer-based sets)
 vendor/bin/rector process
 
 # Dry run to preview Rector changes
@@ -65,23 +65,25 @@ vendor/bin/rector process --dry-run
 - Follows `@Symfony` and `@Symfony:risky` rule sets
 - Enforces `declare(strict_types=1)` on all files
 - Uses short array syntax
-- Requires header comment block with copyright information
+- Requires the SILARHI header comment block
 - Native function invocation optimization enabled
+- Tests use `self::assert*()` (strict-rules forbids `$this->assert*()`)
 
 ## PHP Version Requirements
 
 - Minimum: PHP 8.2
 - Uses modern PHP features:
-  - Backed enums (PHP 8.1+)
-  - Readonly properties (PHP 8.1+)
-  - Union types (`string|false`, `float|int|string`)
-  - Mixed type
-  - Constructor property promotion
+    - Backed enums (PHP 8.1+)
+    - Readonly properties (PHP 8.1+)
+    - Union types (`string|false`, `float|int|string`)
+    - Mixed type
+    - Constructor property promotion
 
 ## Dependencies
 
-- **nesbot/carbon**: ^2|^3 - Date/time handling for transactions
-- **Dev dependencies**: PHPStan, PHP-CS-Fixer, Rector
+- **No runtime dependencies** (dates use native `DateTimeImmutable`)
+- **Dev dependencies**: PHPUnit, PHPStan (+ strict-rules), PHP-CS-Fixer, Rector, composer-normalize
+- Tooling mirrors the other SILARHI libraries (`caf-parser`, `cfonb-parser`): laminas CI matrix, Renovate, husky + lint-staged
 
 ## Important Implementation Details
 
@@ -92,6 +94,7 @@ The Parser uses a switch statement matching single-character field codes from De
 ### Transaction Rendering
 
 Transaction objects convert to QIF format via `__toString()`. Private helper methods:
+
 - `renderDateLineIfNotNull()`: Formats date as 'd/m/Y'
 - `renderIfNotNull()`: Conditionally renders field lines
 - `renderSplits()`: Formats split transactions
@@ -109,7 +112,7 @@ The project uses PHPUnit 11 with comprehensive test coverage:
 - **Unit tests**: Located in `tests/Unit/`
 - **Test fixtures**: Sample QIF files in `tests/fixtures/`
 - **Coverage**: All core classes (Parser, Writer, Transaction) and enums have full test coverage
-- **PHPUnit config**: `phpunit.xml` with strict error handling enabled
+- **PHPUnit config**: `phpunit.xml.dist` (Clover coverage in `coverage/`, used by the CI coverage badge)
 
 ### Test Structure
 

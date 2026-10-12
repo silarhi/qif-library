@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Silarhi\Qif\Tests\Unit\Enums;
 
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Silarhi\Qif\Enums\Status;
 
@@ -22,38 +23,47 @@ final class StatusTest extends TestCase
 {
     public function testNotClearedValue(): void
     {
-        $this->assertSame('', Status::NOT_CLEARED->value);
+        self::assertSame('', Status::NOT_CLEARED->value);
     }
 
     public function testClearedValue(): void
     {
-        $this->assertSame('c', Status::CLEARED->value);
+        self::assertSame('c', Status::CLEARED->value);
     }
 
     public function testReconciledValue(): void
     {
-        $this->assertSame('X', Status::RECONCILED->value);
+        self::assertSame('X', Status::RECONCILED->value);
     }
 
     public function testAllCasesExist(): void
     {
         $cases = Status::cases();
 
-        $this->assertCount(3, $cases);
-        $this->assertContains(Status::NOT_CLEARED, $cases);
-        $this->assertContains(Status::CLEARED, $cases);
-        $this->assertContains(Status::RECONCILED, $cases);
+        self::assertCount(3, $cases);
+        self::assertContains(Status::NOT_CLEARED, $cases);
+        self::assertContains(Status::CLEARED, $cases);
+        self::assertContains(Status::RECONCILED, $cases);
     }
 
     public function testTryFromValidValues(): void
     {
-        $this->assertSame(Status::NOT_CLEARED, Status::tryFrom(''));
-        $this->assertSame(Status::CLEARED, Status::tryFrom('c'));
-        $this->assertSame(Status::RECONCILED, Status::tryFrom('X'));
+        self::assertSame(Status::NOT_CLEARED, Status::tryFrom(''));
+        self::assertSame(Status::CLEARED, Status::tryFrom('c'));
+        self::assertSame(Status::RECONCILED, Status::tryFrom('X'));
     }
 
-    public function testTryFromInvalidValue(): void
+    #[DataProvider('provideInvalidValues')]
+    public function testTryFromInvalidValue(string $value): void
     {
-        $this->assertNull(Status::tryFrom('invalid'));
+        self::assertNull(Status::tryFrom($value));
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function provideInvalidValues(): iterable
+    {
+        yield 'unknown code' => ['invalid'];
     }
 }
