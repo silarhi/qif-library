@@ -34,11 +34,14 @@ the record index: see [ParseException](/reference/exceptions/#parseexception).
 
 The amount messages show the amount as written in the file: `"12 EUR" is not an amount.` (3.0: `"12EUR"`).
 
+### `$_raw` line breaks
+
+`Transaction::$_raw` ends its lines with the line break of the file instead of the parser separator (`"\r\n"` by
+default). Its format is not part of the API.
+
 ### Unchanged by default
 
-- The writer still writes dates day first: pass `DateFormat::MonthFirst` to `new Writer()` to write them month first.
-- `Transaction::$_raw` ends its lines with the line break of the file instead of the parser separator (`"\r\n"` by
-  default). Its format is not part of the API.
+The writer still writes dates day first: pass `DateFormat::MonthFirst` to `new Writer()` to write them month first.
 
 ## From 2.x to 3.0
 

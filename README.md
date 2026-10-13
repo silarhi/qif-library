@@ -98,7 +98,7 @@ Everything else is on **[qif-library.silarhi.dev](https://qif-library.silarhi.de
   [error handling](https://qif-library.silarhi.dev/guides/error-handling/)
 - Reference: [classes](https://qif-library.silarhi.dev/reference/classes/), [enums and QIF fields](https://qif-library.silarhi.dev/reference/enums/),
   [exceptions](https://qif-library.silarhi.dev/reference/exceptions/)
-- [Upgrading](https://qif-library.silarhi.dev/upgrading/) from `mimographix/qif-library`, 1.x or 2.x
+- [Upgrading](https://qif-library.silarhi.dev/upgrading/) from `mimographix/qif-library`, 1.x, 2.x or 3.x
 
 ## Contributing
 

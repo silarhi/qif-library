@@ -39,7 +39,7 @@ The transactions read before the error are not lost: after a failed `parse()`, `
 `Parser::parseFile()` does not return the parser when it throws: to keep them, read the file yourself and parse it
 with the constructor:
 
-````php
+```php
 use Silarhi\Qif\Exception\ParseException;
 use Silarhi\Qif\Parser;
 
@@ -51,6 +51,7 @@ try {
 }
 
 $transactions = $parser->getTransactions(); // every transaction before the error
+```
 
 ### Fixing a ParseException
 
@@ -92,4 +93,4 @@ foreach ($parser->getTransactions() as $transaction) {
         throw new UnexpectedValueException('Transaction without a date: ' . $transaction->_raw);
     }
 }
-````
+```
