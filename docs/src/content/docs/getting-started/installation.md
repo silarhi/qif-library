@@ -30,4 +30,4 @@ The classes live in the `Silarhi\Qif` namespace, the enums in `Silarhi\Qif\Enums
 | `Silarhi\Qif\Enums\DecimalSeparator`   | Parser option: amounts with a decimal `Point` or `Comma`              |
 | `Silarhi\Qif\Exception\ParseException` | Thrown on a value the parser cannot read without guessing             |
 
-Coming from `mimographix/qif-library`, or from version 1 or 2? See [Upgrading](/upgrading/).
+Coming from `mimographix/qif-library`, or from version 1, 2 or 3? See [Upgrading](/upgrading/).
