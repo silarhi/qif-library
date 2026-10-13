@@ -118,11 +118,11 @@ Transaction objects convert to QIF format via `toQif(DateFormat)` (`__toString()
 
 ## Testing
 
-The project uses PHPUnit 11 with comprehensive test coverage:
+The project uses PHPUnit (`^11.5 || ^12.5 || ^13.4` in `composer.json`, depending on the PHP version):
 
 - **Unit tests**: Located in `tests/Unit/`
 - **Test fixtures**: Sample QIF files in `tests/fixtures/`
-- **Coverage**: All core classes (Parser, Writer, Transaction) and enums have full test coverage
+- **Coverage**: `Parser`, `Writer`, `Transaction` and `AmountParser` have their own test class, and so do the `DetailItems`, `Status` and `Types` enums; `DateFormat` and `DecimalSeparator` have none, they are tested through the parser, writer and amount tests
 - **PHPUnit config**: `phpunit.xml.dist` (Clover coverage in `coverage/`, used by the CI coverage badge)
 
 ### Test Structure
@@ -130,7 +130,8 @@ The project uses PHPUnit 11 with comprehensive test coverage:
 - `TransactionTest`: Tests transaction creation, setters/getters, fluent interface, splits, and string output
 - `ParserTest`: Tests QIF parsing, multiple formats, date handling, status variations, and error cases
 - `WriterTest`: Tests transaction collection, output generation, and file writing
-- `Enums/*Test`: Tests enum values and tryFrom() functionality
+- `AmountParserTest`: Tests amount reading, decimal separator detection, and invalid or ambiguous amounts
+- `Enums/*Test` (`DetailItems`, `Status`, `Types`): Tests enum values and tryFrom() functionality
 
 ## API Documentation
 
@@ -153,7 +154,7 @@ The project uses PHPUnit 11 with comprehensive test coverage:
 1. Add enum case to `DetailItems` with backed string value
 2. Update `Parser::parse()` switch statement to handle the field
 3. Add property and getter/setter to `Transaction` if needed
-4. Update `Transaction::__toString()` to output the field
+4. Update `Transaction::toQif()` to output the field
 5. Write tests in `ParserTest` and `TransactionTest` for the new field
 6. Document it in `docs/` (the guides, and the "Read" / "Written" columns of `docs/src/content/docs/reference/enums.md`), then run `php docs/scripts/render-examples.php`
 7. Run PHPStan, PHPUnit, and PHP-CS-Fixer
