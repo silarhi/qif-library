@@ -88,6 +88,7 @@ vendor/bin/rector process --dry-run
 - **No runtime dependencies** (dates use native `DateTimeImmutable`)
 - **Dev dependencies**: PHPUnit, PHPStan (+ strict-rules), PHP-CS-Fixer, Rector, composer-normalize
 - Tooling mirrors the other SILARHI libraries (`caf-parser`, `cfonb-parser`): laminas CI matrix, Renovate, husky + lint-staged
+- pnpm is the package manager (root for the git hooks, `docs/` for the site, each with its own lockfile): its version is pinned by `packageManager` in `package.json`, and `pnpm-workspace.yaml` lists the dependencies allowed to run install scripts (`allowBuilds`; pnpm fails the install on a new unlisted one).
 
 ## Important Implementation Details
 
