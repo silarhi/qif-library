@@ -7,7 +7,10 @@
         "qif",
         "quicken",
         "parser",
-        "writer"
+        "writer",
+        "qif-parser",
+        "finance",
+        "bank"
     ],
     "authors": [
         {
@@ -15,6 +18,12 @@
             "email": "hello@silarhi.fr"
         }
     ],
+    "homepage": "https://qif-library.silarhi.dev",
+    "support": {
+        "issues": "https://github.com/silarhi/qif-library/issues",
+        "source": "https://github.com/silarhi/qif-library",
+        "docs": "https://qif-library.silarhi.dev"
+    },
     "require": {
         "php": ">=8.2"
     },
