@@ -22,7 +22,12 @@ use Silarhi\Qif\Enums\DateFormat;
 use Silarhi\Qif\Enums\DetailItems;
 use Silarhi\Qif\Enums\Status;
 use Silarhi\Qif\Enums\Types;
+
+use function sprintf;
+
 use Stringable;
+
+use function strlen;
 
 class Transaction implements Stringable
 {
@@ -62,8 +67,12 @@ class Transaction implements Stringable
         return $this;
     }
 
+    /**
+     * @throws InvalidArgumentException when the payee contains a line break
+     */
     public function setDescription(?string $description): self
     {
+        self::assertSingleLine($description, 'payee');
         $this->description = $description;
 
         return $this;
@@ -72,17 +81,22 @@ class Transaction implements Stringable
     /**
      * @param float|int|string $float a string can group thousands, in either convention ("1,234.50" or "1.234,50")
      *
-     * @throws InvalidArgumentException when the string is not an amount or is ambiguous ("1,234")
+     * @throws InvalidArgumentException when the string is not an amount or is ambiguous ("1,234"), or the amount is not
+     *                                  finite (INF, NAN)
      */
     public function setAmount(float|int|string $float): self
     {
-        $this->amount = is_string($float) ? AmountParser::parse($float) : (float) $float;
+        $this->amount = self::toAmount($float);
 
         return $this;
     }
 
+    /**
+     * @throws InvalidArgumentException when the category contains a line break
+     */
     public function setCategory(?string $category): self
     {
+        self::assertSingleLine($category, 'category');
         $this->category = $category;
 
         return $this;
@@ -93,13 +107,16 @@ class Transaction implements Stringable
      *
      * @param float|int|string $amount a string can group thousands, in either convention ("1,234.50" or "1.234,50")
      *
-     * @throws InvalidArgumentException when the string is not an amount or is ambiguous ("1,234")
+     * @throws InvalidArgumentException when the string is not an amount or is ambiguous ("1,234"), the amount is not
+     *                                  finite (INF, NAN), or the category or memo contains a line break
      */
     public function addSplit(string $category, float|int|string $amount, ?string $memo = null): self
     {
+        self::assertSingleLine($category, 'split category');
+        self::assertSingleLine($memo, 'split memo');
         $this->splits[] = [
             'category' => $category,
-            'amount' => is_string($amount) ? AmountParser::parse($amount) : (float) $amount,
+            'amount' => self::toAmount($amount),
             'memo' => $memo,
         ];
 
@@ -168,13 +185,13 @@ class Transaction implements Stringable
             $output .= \PHP_EOL . DetailItems::Date->value . $this->date->format($dateFormat->writeFormat());
         }
         if (null !== $this->amount) {
-            $output .= \PHP_EOL . DetailItems::Amount->value . $this->amount;
+            $output .= \PHP_EOL . DetailItems::Amount->value . self::formatAmount($this->amount);
         }
         if (null !== $this->category) {
             $output .= \PHP_EOL . DetailItems::Category->value . $this->category;
         }
         foreach ($this->splits as $split) {
-            $output .= \PHP_EOL . DetailItems::SplitCategory->value . $split['category'] . \PHP_EOL . DetailItems::SplitAmount->value . $split['amount'];
+            $output .= \PHP_EOL . DetailItems::SplitCategory->value . $split['category'] . \PHP_EOL . DetailItems::SplitAmount->value . self::formatAmount($split['amount']);
             if (null !== $split['memo']) {
                 $output .= \PHP_EOL . DetailItems::SplitMemo->value . $split['memo'];
             }
@@ -206,8 +223,12 @@ class Transaction implements Stringable
         return $this;
     }
 
+    /**
+     * @throws InvalidArgumentException when the memo contains a line break
+     */
     public function setMemo(?string $memo): self
     {
+        self::assertSingleLine($memo, 'memo');
         $this->memo = $memo;
 
         return $this;
@@ -262,5 +283,50 @@ class Transaction implements Stringable
     public function getMemo(): ?string
     {
         return $this->memo;
+    }
+
+    /**
+     * @throws InvalidArgumentException when the string is not an amount or is ambiguous, or the amount is not finite
+     */
+    private static function toAmount(float|int|string $amount): float
+    {
+        if (is_string($amount)) {
+            return AmountParser::parse($amount);
+        }
+
+        // INF and NAN would be written "TINF" and "TNAN"
+        $amount = (float) $amount;
+        if (!is_finite($amount)) {
+            throw new InvalidArgumentException(sprintf('%s is not an amount.', var_export($amount, true)));
+        }
+
+        return $amount;
+    }
+
+    /**
+     * A QIF field is a single line: after a line break, the value would be read as other fields, or other records.
+     *
+     * @param string $field the field, for the message
+     *
+     * @throws InvalidArgumentException when the value contains a line break
+     */
+    private static function assertSingleLine(?string $value, string $field): void
+    {
+        if (null !== $value && false !== strpbrk($value, "\r\n")) {
+            throw new InvalidArgumentException(sprintf('The %s "%s" contains a line break: QIF fields are single lines.', $field, addcslashes($value, "\r\n")));
+        }
+    }
+
+    /**
+     * Two decimals, more when the amount has them ("1.234" for currencies with 3 decimals), up to 15 significant digits.
+     * Never in scientific notation or rounded to 14 digits, as PHP's float to string conversion does ("1.2345678901235E+14").
+     */
+    private static function formatAmount(float $amount): string
+    {
+        $decimals = max(2, 15 - strlen(number_format(abs($amount), 0, '.', '')));
+        $formatted = number_format($amount, $decimals, '.', '');
+
+        // Without the trailing zeros after the second decimal
+        return substr($formatted, 0, max(strlen($formatted) - $decimals + 2, strlen(rtrim($formatted, '0'))));
     }
 }

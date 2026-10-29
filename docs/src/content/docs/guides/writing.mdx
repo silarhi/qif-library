@@ -43,11 +43,16 @@ $transaction = (new Transaction(Types::Cash))
 
 Splits are a list: several splits can share a category, and `addSplit()` adds one at the end each time.
 
+The payee, category, memo and the split categories and memos are single lines: their setters throw an
+`InvalidArgumentException` on a value with a line break (`"\n"` or `"\r"`), which would end the field and let the rest
+be read as other fields or records. Only the address has several lines.
+
 ### String amounts
 
 `setAmount()` and `addSplit()` take a `float`, an `int` or a string. A string is read like the amounts of a QIF file,
 its decimal separator detected: `'1,234.50'` and `'1.234,50'` are both `1234.5`, `'12,50'` is `12.5`. A string that is
-not an amount (`'12 EUR'`) or is ambiguous (`'1,234'`: `1234` or `1.234`) throws an `InvalidArgumentException`. See
+not an amount (`'12 EUR'`, `'1e3'`) or is ambiguous (`'1,234'`: `1234` or `1.234`) throws an
+`InvalidArgumentException`, and so does an amount that is not finite (`INF`, `NAN`). See
 [Amounts](/guides/parsing/#amounts).
 
 ## Write them
@@ -84,7 +89,8 @@ cleared status, payee, address and memo of each transaction, in this order, then
 - each split is written as its `S` line, its `$` line, then its `E` line when it has a memo;
 - the `C` line is always written, empty for `Status::NotCleared`, `c` for `Cleared` and `X` for `Reconciled`;
 - the address is written as one `A` line per line (`"\n"`, `"\r\n"` or `"\r"`);
-- amounts use PHP's float to string conversion: `2400`, `-84.3`, no thousands separator;
+- amounts have two decimals, more when they have them (`2400.00`, `-84.30`, `1.234`), up to 15 significant digits,
+  without thousands separator or exponent;
 - lines end with `PHP_EOL`, and there is no line break after the last `^`.
 
 Each transaction is a `Stringable` too: `(string) $transaction` returns its own record, dates day first, and

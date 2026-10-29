@@ -3,7 +3,7 @@ D15/01/2026
 T-118.99
 LHome
 SHome:Tools
-$-100
+$-100.00
 STax
 $-18.99
 EVAT
@@ -15,7 +15,7 @@ MDrill and bits
 ^
 !Type:Bank
 D31/01/2026
-T2400
+T2400.00
 LIncome:Salary
 C
 PAcme Corp

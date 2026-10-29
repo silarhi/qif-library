@@ -30,13 +30,14 @@ final class AmountParser
     /**
      * @param DecimalSeparator|null $decimalSeparator null to detect it, rejecting amounts that could be read both ways
      *
-     * @throws InvalidArgumentException when the amount is not a number or is ambiguous
+     * @throws InvalidArgumentException when the amount is not a number, is ambiguous or is too large for a float
      */
     public static function parse(string $amount, ?DecimalSeparator $decimalSeparator = null): float
     {
-        // A plain number ("-1234.50", "1.234") uses a decimal point, as in the QIF specification
-        if (DecimalSeparator::Comma !== $decimalSeparator && is_numeric($amount)) {
-            return (float) $amount;
+        // A plain number ("-1234.50", "1.234") uses a decimal point, as in the QIF specification. Not is_numeric(),
+        // which reads exponents ("1e400" is INF)
+        if (DecimalSeparator::Comma !== $decimalSeparator && 1 === preg_match('/^\s*[+-]?(?:\d+(?:\.\d*)?|\.\d+)\s*$/', $amount)) {
+            return self::finite((float) $amount, $amount);
         }
 
         // Spaces, including the (narrow) no-break spaces of French amounts, only group thousands. The messages show
@@ -64,7 +65,20 @@ final class AmountParser
             $integer = str_replace($thousandsSeparator, '', $integer);
         }
 
-        return (float) ($sign . ('' === $integer ? '0' : $integer) . '.' . ($parts[1] ?? ''));
+        return self::finite((float) ($sign . ('' === $integer ? '0' : $integer) . '.' . ($parts[1] ?? '')), $amount);
+    }
+
+    /**
+     * @param string $amount the amount as written, for the message
+     */
+    private static function finite(float $value, string $amount): float
+    {
+        // Hundreds of digits overflow to INF, which would be written back "TINF"
+        if (!is_finite($value)) {
+            throw new InvalidArgumentException(sprintf('"%s" is too large to be an amount.', $amount));
+        }
+
+        return $value;
     }
 
     /**

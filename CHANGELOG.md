@@ -5,6 +5,21 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.1.0] - Unreleased
+
+### Changed
+
+- The writer writes amounts with two decimals, or more when they have them, up to 15 significant digits: `T-10.00`, `T-84.30`, `T1.234` instead of `T-10`, `T-84.3`. Files are read the same way, but compare the written content with two decimals.
+- `Transaction::setDescription()`, `setCategory()`, `setMemo()` and `addSplit()` throw an `InvalidArgumentException` on a value with a line break (`"\n"` or `"\r"`): only the address has several lines. A parsed `"\r"` inside a line (with a separator that does not contain it) throws a `ParseException`.
+- An amount with an exponent (`1e3`) is not an amount: `Parser::parse()` throws a `ParseException`, `setAmount()` and `addSplit()` an `InvalidArgumentException`.
+
+### Fixed
+
+- A payee, category, memo, split category or split memo with a line break was written as is, so `setDescription("Coffee\r\n^\r\n!Type:Bank\r\nT999999")` added a forged record to the output.
+- Large amounts are written without rounding or exponent: `12345678901234.56` was written `T12345678901235`, and `123456789012345.67` `T1.2345678901235E+14`.
+- An amount too large for a float (`1e400`, hundreds of digits) was read as `INF` and written back `TINF`: it throws `"…" is too large to be an amount.` (or `is not an amount.` for the exponent), and `setAmount()`/`addSplit()` reject `INF` and `NAN`.
+- A record with many `A` lines took quadratic time to parse (57 s for 160,000 lines).
+
 ## [4.0.0] - 2026-10-13
 
 ### Added
@@ -84,6 +99,7 @@ First release as `silarhi/qif-library`, a fork of the unmaintained `mimographix/
 - **BC break:** `nesbot/carbon` is no longer a dependency: `Transaction::setDate()` takes and `getDate()` returns a `DateTimeImmutable`.
 - `Parser::parseFile()` throws a `RuntimeException` when the file is missing or unreadable, and `Writer::saveToFile()` when the file cannot be written, instead of a PHP warning or `die()`.
 
+[4.1.0]: https://github.com/silarhi/qif-library/compare/4.0.0...main
 [4.0.0]: https://github.com/silarhi/qif-library/compare/3.0.0...4.0.0
 [3.0.0]: https://github.com/silarhi/qif-library/compare/2.0.0...3.0.0
 [2.0.0]: https://github.com/silarhi/qif-library/compare/1.0.0...2.0.0

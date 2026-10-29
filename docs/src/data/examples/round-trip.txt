@@ -1,6 +1,6 @@
 !Type:Bank
 D03/01/2026
-T-1250
+T-1250.00
 LHousing:Rent
 CX
 PExample Property Rentals
@@ -10,7 +10,7 @@ MJanuary rent
 ^
 !Type:Bank
 D05/01/2026
-T2400
+T2400.00
 LIncome:Salary
 Cc
 PAcme Corp
@@ -18,13 +18,13 @@ MSalary
 ^
 !Type:Bank
 D07/01/2026
-T-84.3
+T-84.30
 LFood
 SFood:Groceries
-$-64.3
+$-64.30
 EWeekly groceries
 SHousehold
-$-20
+$-20.00
 C
 PDemo Grocery
 ^

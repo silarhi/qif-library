@@ -11,11 +11,13 @@ import Example from '../../../components/Example.astro'
 
 - `Parser::parseFile()` throws a `RuntimeException` when the file does not exist or cannot be read
 - `Parser::parse()` and `Parser::parseFile()` throw a `Silarhi\Qif\Exception\ParseException` on a value they cannot
-  read without guessing: a date that does not exist or is not a date, an amount that is not a number or is ambiguous
-  (`1,234`), a split without amount
+  read without guessing: a date that does not exist or is not a date, an amount that is not a number, is ambiguous
+  (`1,234`) or too large, a split without amount
 - `Writer::saveToFile()` throws a `RuntimeException` when the directory is not writable or the file cannot be opened
 - `Transaction::setAmount()` and `addSplit()` throw an `InvalidArgumentException` when given a string that is not an
-  amount or is ambiguous (`'1,234'`)
+  amount or is ambiguous (`'1,234'`), or an amount that is not finite (`INF`, `NAN`)
+- `Transaction::setDescription()`, `setCategory()`, `setMemo()` and `addSplit()` throw an `InvalidArgumentException`
+  on a value with a line break
 
 The messages include the path or the value, as written in the file, and the parse errors start with where they
 happened:

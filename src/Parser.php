@@ -109,6 +109,9 @@ class Parser
         $transaction = null;
         /** @var array{category: string, amount: ?float, memo: ?string, lineIndex: int}|null $split */
         $split = null;
+        // One A line per address line, joined when the record ends: joining them line by line is quadratic
+        /** @var list<string> $addressLines */
+        $addressLines = [];
         /** @var array<string, DateTimeImmutable> $dateCache */
         $dateCache = [];
         $lineBreak = $this->detectLineBreak($content);
@@ -126,11 +129,12 @@ class Parser
                 if (!str_starts_with($value, 'Option:') && !str_starts_with($value, 'Clear:')) {
                     // A record that misses its closing "^" ends with the list
                     if (null !== $transaction) {
-                        $this->addTransaction($transaction, (string) $transactionRaw, $split, $content);
+                        $this->addTransaction($transaction, (string) $transactionRaw, $split, $addressLines, $content);
                     }
                     $transactionRaw = null;
                     $transaction = null;
                     $split = null;
+                    $addressLines = [];
                     $header = $line . $lineBreak;
                     $inTransactionList = !in_array($value, self::NON_TRANSACTION_LISTS, true);
                     $type = str_starts_with($value, 'Type:') ? Types::tryFrom(trim(substr($value, 5))) : null;
@@ -141,11 +145,12 @@ class Parser
 
                 if ('^' === $first) {
                     if (null !== $transaction) {
-                        $this->addTransaction($transaction, $transactionRaw, $split, $content);
+                        $this->addTransaction($transaction, $transactionRaw, $split, $addressLines, $content);
                     }
                     $transactionRaw = null;
                     $transaction = null;
                     $split = null;
+                    $addressLines = [];
                 } elseif ('' !== $value || DetailItems::SplitCategory->value === $first) {
                     // An empty field is skipped like a missing one, but an S line always starts a split: the $ and E
                     // lines that follow it belong to that split
@@ -177,9 +182,7 @@ class Parser
                                 $transaction->setDescription($value);
                                 break;
                             case DetailItems::Address->value:
-                                // One A line per address line
-                                $address = $transaction->getAddress();
-                                $transaction->setAddress(null === $address ? $value : $address . "\n" . $value);
+                                $addressLines[] = $value;
                                 break;
                             case DetailItems::Category->value:
                                 $transaction->setCategory($value);
@@ -213,7 +216,7 @@ class Parser
 
         // The last record can miss its closing "^"
         if (null !== $transaction) {
-            $this->addTransaction($transaction, (string) $transactionRaw, $split, $content);
+            $this->addTransaction($transaction, (string) $transactionRaw, $split, $addressLines, $content);
         }
 
         return $this->getTransactions();
@@ -254,12 +257,16 @@ class Parser
     }
 
     /**
-     * @param array{category: string, amount: ?float, memo: ?string, lineIndex: int}|null $split the split being read
+     * @param array{category: string, amount: ?float, memo: ?string, lineIndex: int}|null $split        the split being read
+     * @param list<string>                                                                $addressLines the A lines of the record
      */
-    private function addTransaction(Transaction $transaction, string $raw, ?array $split, string $content): void
+    private function addTransaction(Transaction $transaction, string $raw, ?array $split, array $addressLines, string $content): void
     {
         if (null !== $split) {
             $this->addSplit($transaction, $split, $content);
+        }
+        if ([] !== $addressLines) {
+            $transaction->setAddress(implode("\n", $addressLines));
         }
         $transaction->_raw = $raw;
         $this->transactions[] = $transaction;
@@ -273,7 +280,13 @@ class Parser
         if (null === $split['amount']) {
             throw new ParseException(sprintf('The split "%s" has no amount ($ line).', $split['category']), $this->lineNumber($content, $split['lineIndex']), count($this->transactions));
         }
-        $transaction->addSplit($split['category'], $split['amount'], $split['memo']);
+
+        try {
+            $transaction->addSplit($split['category'], $split['amount'], $split['memo']);
+        } catch (InvalidArgumentException $e) {
+            // A line break in the category or memo, with a separator that does not split on it
+            throw new ParseException($e->getMessage(), $this->lineNumber($content, $split['lineIndex']), count($this->transactions), $e);
+        }
     }
 
     private function parseDate(string $value): DateTimeImmutable

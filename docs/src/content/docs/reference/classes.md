@@ -60,8 +60,10 @@ Setters return the transaction. The parser fills every field and the writer outp
 [Parsing](/guides/parsing/#what-you-get) and [Writing](/guides/writing/#output-format).
 
 `setAmount()` and `addSplit()` read a string amount with its thousands separators, in either convention (`'1,234.50'`,
-`'1.234,50'`), and throw an `InvalidArgumentException` on a string that is not an amount or is ambiguous (`'1,234'`):
-see [String amounts](/guides/writing/#string-amounts).
+`'1.234,50'`), and throw an `InvalidArgumentException` on a string that is not an amount or is ambiguous (`'1,234'`),
+or an amount that is not finite: see [String amounts](/guides/writing/#string-amounts). `setDescription()`,
+`setCategory()`, `setMemo()` and `addSplit()` throw an `InvalidArgumentException` on a value with a line break: only
+the address has several lines.
 
 `getSplits()` returns a `list<array{category: string, amount: float, memo: ?string}>`, in the order the splits were
 added or parsed. Several splits can share a category:

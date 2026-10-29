@@ -16,11 +16,14 @@ namespace Silarhi\Qif\Tests\Unit;
 use DateTimeImmutable;
 use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Silarhi\Qif\Enums\DateFormat;
 use Silarhi\Qif\Enums\Status;
 use Silarhi\Qif\Enums\Types;
 use Silarhi\Qif\Transaction;
+
+use function sprintf;
 
 #[CoversClass(Transaction::class)]
 final class TransactionTest extends TestCase
@@ -108,6 +111,76 @@ final class TransactionTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
 
         $transaction->setAmount('twelve');
+    }
+
+    public function testSetAmountRejectsNonFiniteFloat(): void
+    {
+        $transaction = new Transaction(Types::Bank);
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('INF is not an amount.');
+
+        $transaction->setAmount(\INF);
+    }
+
+    public function testAddSplitRejectsNonFiniteFloat(): void
+    {
+        $transaction = new Transaction(Types::Bank);
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('NAN is not an amount.');
+
+        $transaction->addSplit('Tax', \NAN);
+    }
+
+    /**
+     * @return iterable<string, array{callable(Transaction, string): Transaction, string}>
+     */
+    public static function provideSingleLineFields(): iterable
+    {
+        yield 'payee' => [static fn (Transaction $transaction, string $value): Transaction => $transaction->setDescription($value), 'payee'];
+        yield 'category' => [static fn (Transaction $transaction, string $value): Transaction => $transaction->setCategory($value), 'category'];
+        yield 'memo' => [static fn (Transaction $transaction, string $value): Transaction => $transaction->setMemo($value), 'memo'];
+        yield 'split category' => [static fn (Transaction $transaction, string $value): Transaction => $transaction->addSplit($value, 10), 'split category'];
+        yield 'split memo' => [static fn (Transaction $transaction, string $value): Transaction => $transaction->addSplit('Food', 10, $value), 'split memo'];
+    }
+
+    /**
+     * @param callable(Transaction, string): Transaction $set
+     */
+    #[DataProvider('provideSingleLineFields')]
+    public function testSingleLineFieldsRejectLineBreaks(callable $set, string $field): void
+    {
+        // A line break would end the field: the rest would be written as a forged record
+        foreach (["Coffee\r\n^\r\n!Type:Bank\r\nT999999\r\nPInjected", "Coffee\nLHacked", "Coffee\rLHacked"] as $value) {
+            try {
+                $set(new Transaction(Types::Bank), $value);
+                self::fail(sprintf('The %s should reject a line break.', $field));
+            } catch (InvalidArgumentException $e) {
+                self::assertStringStartsWith(sprintf('The %s "Coffee\\', $field), $e->getMessage());
+                self::assertStringEndsWith('" contains a line break: QIF fields are single lines.', $e->getMessage());
+            }
+        }
+    }
+
+    public function testLineBreakMessageEscapesTheValue(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('The memo "Coffee\r\n^" contains a line break: QIF fields are single lines.');
+
+        (new Transaction(Types::Bank))->setMemo("Coffee\r\n^");
+    }
+
+    public function testSingleLineFieldsAcceptNull(): void
+    {
+        $transaction = (new Transaction(Types::Bank))
+            ->setDescription('Payee')->setDescription(null)
+            ->setCategory('Food')->setCategory(null)
+            ->setMemo('Memo')->setMemo(null);
+
+        self::assertNull($transaction->getDescription());
+        self::assertNull($transaction->getCategory());
+        self::assertNull($transaction->getMemo());
     }
 
     public function testSetAndGetCategory(): void
@@ -284,7 +357,7 @@ final class TransactionTest extends TestCase
 
         self::assertSame(implode(\PHP_EOL, [
             '!Type:Bank',
-            'T-50',
+            'T-50.00',
             'C',
             'PStandard Oil',
             'AStandard Oil',
@@ -292,6 +365,30 @@ final class TransactionTest extends TestCase
             'MFuel for car',
             '^',
         ]), (string) $transaction);
+    }
+
+    /**
+     * @return iterable<string, array{float, string}>
+     */
+    public static function provideWrittenAmounts(): iterable
+    {
+        yield 'integer' => [-10.0, '-10.00'];
+        yield 'one decimal' => [-1234.5, '-1234.50'];
+        yield 'three decimals' => [1.234, '1.234'];
+        yield 'float error' => [0.1 + 0.2, '0.30'];
+        yield 'zero' => [0.0, '0.00'];
+        yield 'fourteen digits' => [12345678901234.56, '12345678901234.56'];
+        yield 'fifteen digits, no exponent' => [123456789012345.67, '123456789012345.67'];
+        yield 'twenty digits' => [1e20, '100000000000000000000.00'];
+        yield 'small' => [-0.001, '-0.001'];
+    }
+
+    #[DataProvider('provideWrittenAmounts')]
+    public function testToQifWritesAmountsWithoutRoundingOrExponent(float $amount, string $expected): void
+    {
+        $transaction = (new Transaction(Types::Bank))->setAmount($amount)->addSplit('Food', $amount);
+
+        self::assertSame("!Type:Bank\nT{$expected}\nSFood\n\${$expected}\nC\n^", str_replace(\PHP_EOL, "\n", $transaction->toQif()));
     }
 
     public function testToQifWritesTheDateInTheGivenFormat(): void

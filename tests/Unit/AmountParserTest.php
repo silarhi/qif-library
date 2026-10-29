@@ -46,6 +46,10 @@ final class AmountParserTest extends TestCase
         yield 'space thousands' => ['1 234,50', 1234.5];
         yield 'no-break space thousands' => ["1\u{202F}234,50", 1234.5];
         yield 'leading decimal comma' => [',5', 0.5];
+        yield 'leading decimal point' => ['.5', 0.5];
+        yield 'trailing decimal point' => ['12.', 12.0];
+        yield 'surrounding spaces' => [' -12.5 ', -12.5];
+        yield '300 digits' => [str_repeat('9', 300), (float) str_repeat('9', 300)];
     }
 
     #[DataProvider('provideDetectedAmounts')]
@@ -87,6 +91,14 @@ final class AmountParserTest extends TestCase
         yield 'comma convention read as point' => ['1.234,50', DecimalSeparator::Point];
         yield 'point convention read as comma' => ['1,234.50', DecimalSeparator::Comma];
         yield 'plain amount read as comma' => ['1234.50', DecimalSeparator::Comma];
+        yield 'exponent' => ['1e3', null];
+        yield 'exponent overflowing to INF' => ['1e400', null];
+        yield 'exponent read as point' => ['1.5E3', DecimalSeparator::Point];
+        yield 'INF' => ['INF', null];
+        yield 'NAN' => ['NAN', null];
+        yield '400 digits' => [str_repeat('9', 400), null];
+        yield '400 digits with decimal comma' => [str_repeat('9', 400) . ',00', null];
+        yield '400 digits read as comma' => [str_repeat('9', 400), DecimalSeparator::Comma];
     }
 
     #[DataProvider('provideInvalidAmounts')]
@@ -106,6 +118,8 @@ final class AmountParserTest extends TestCase
         yield 'ambiguous' => ['- 1,234', null, '"- 1,234" is ambiguous'];
         yield 'two decimal separators' => ['1 234,5,6', DecimalSeparator::Comma, '"1 234,5,6" is not an amount with "," as decimal separator.'];
         yield 'misgrouped thousands' => ['1 2.34,50', null, '"1 2.34,50" does not group its thousands by ".".'];
+        yield 'exponent' => ['1e400', null, '"1e400" is not an amount.'];
+        yield 'too large' => [str_repeat('9', 400), null, '"' . str_repeat('9', 400) . '" is too large to be an amount.'];
     }
 
     #[DataProvider('provideMessages')]
