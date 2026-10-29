@@ -26,6 +26,7 @@ use Silarhi\Qif\Writer;
 use Stringable;
 
 #[CoversClass(Writer::class)]
+#[CoversClass(DateFormat::class)]
 final class WriterTest extends TestCase
 {
     public function testAddTransaction(): void
@@ -155,6 +156,34 @@ final class WriterTest extends TestCase
         $this->expectExceptionMessage('Directory not writable:');
 
         $writer->saveToFile('/invalid/path/that/does/not/exist/file.qif');
+    }
+
+    public function testSaveToFileThrowsExceptionWhenTheFileCannotBeOpened(): void
+    {
+        $writer = new Writer();
+        $writer->addTransaction((new Transaction(Types::Bank))->setAmount(100.0));
+        // A directory in a writable directory: the directory check passes, but it cannot be opened as a file
+        $directory = sys_get_temp_dir() . '/test_qif_' . uniqid();
+        mkdir($directory);
+        $warnings = [];
+        set_error_handler(static function (int $level, string $message) use (&$warnings): bool {
+            $warnings[] = $message;
+
+            return true;
+        }, \E_WARNING);
+
+        try {
+            $writer->saveToFile($directory);
+            self::fail('A RuntimeException should be thrown.');
+        } catch (RuntimeException $e) {
+            self::assertSame('Unable to open file: ' . $directory, $e->getMessage());
+            self::assertCount(1, $warnings);
+            self::assertStringContainsString('Failed to open stream', $warnings[0]);
+            self::assertDirectoryExists($directory);
+        } finally {
+            restore_error_handler();
+            rmdir($directory);
+        }
     }
 
     public function testStringableInterface(): void
