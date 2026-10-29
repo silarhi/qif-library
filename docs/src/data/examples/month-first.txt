@@ -1,6 +1,6 @@
 !Type:Bank
 D01/31/2026
-T-42.5
+T-42.50
 C
 PDemo Grocery
 ^

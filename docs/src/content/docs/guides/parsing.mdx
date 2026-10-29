@@ -133,14 +133,16 @@ the date format. For the month-first dates of US versions of Quicken, pass `Date
 Amounts can group their thousands with `,`, `.` or spaces (including the no-break spaces of French amounts). By
 default, the decimal separator is detected for each amount:
 
-- a plain number (`-1234.50`, `1.234`) uses a decimal point, as in the QIF specification;
+- a plain number (`-1234.50`, `1.234`) uses a decimal point, as in the QIF specification, without exponent (`1e3` is
+  not an amount);
 - when an amount has both `,` and `.`, the last one separates the decimals (`1,234.50`, `1.234,50`);
 - a separator repeated groups thousands (`1,234,567`);
 - a single `,` is a decimal comma (`12,50`), except after 1 to 3 digits and before exactly 3 (`1,234`): that amount
   is ambiguous, `1234` or `1.234`, and throws a `ParseException`.
 
 Pass `DecimalSeparator::Point` or `DecimalSeparator::Comma` to read every amount of the file the same way. An amount
-written in the other convention then throws a `ParseException`, and so does a value that is not a number (`12 EUR`).
+written in the other convention then throws a `ParseException`, and so does a value that is not a number (`12 EUR`)
+or too large for a float (hundreds of digits).
 The messages show the amount as written in the file, spaces included:
 
 <Example name="amounts" />

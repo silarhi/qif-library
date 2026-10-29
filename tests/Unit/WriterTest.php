@@ -205,6 +205,19 @@ final class WriterTest extends TestCase
         self::assertSame(10.0, $parsed[1]->getAmount());
     }
 
+    public function testLargeAmountsParseBackToTheSameAmount(): void
+    {
+        $writer = new Writer();
+        foreach ([12345678901234.56, -123456789012345.67, 1.234, 1e20] as $amount) {
+            $writer->addTransaction((new Transaction(Types::Bank))->setAmount($amount)->addSplit('Food', $amount));
+        }
+
+        $parsed = (new Parser((string) $writer, \PHP_EOL))->parse();
+
+        self::assertSame([12345678901234.56, -123456789012345.67, 1.234, 1e20], array_map(static fn (Transaction $transaction): ?float => $transaction->getAmount(), $parsed));
+        self::assertSame(-123456789012345.67, $parsed[1]->getSplits()[0]['amount']);
+    }
+
     public function testWritesDatesDayFirstByDefault(): void
     {
         $writer = new Writer();
@@ -223,7 +236,7 @@ final class WriterTest extends TestCase
 
     public function testMonthFirstFileIsWrittenBackMonthFirst(): void
     {
-        $content = "!Type:Bank\nD12/25/2023\nT-10\nC\n^";
+        $content = "!Type:Bank\nD12/25/2023\nT-10.00\nC\n^";
 
         $writer = new Writer(DateFormat::MonthFirst);
         foreach ((new Parser($content, dateFormat: DateFormat::MonthFirst))->parse() as $transaction) {

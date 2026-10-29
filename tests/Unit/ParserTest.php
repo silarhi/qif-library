@@ -417,6 +417,14 @@ QIF;
         self::assertSame("Standard Oil\n101 Main St.\nSpringfield", $transactions[0]->getAddress());
     }
 
+    public function testParseLongAddressInLinearTime(): void
+    {
+        // Joining the lines one by one took 57 s for 160,000 lines
+        $transactions = (new Parser("!Type:Bank\nT1\n" . str_repeat('A' . str_repeat('x', 40) . "\n", 200000) . "^\n", "\n"))->parse();
+
+        self::assertSame(200000, substr_count((string) $transactions[0]->getAddress(), "\n") + 1);
+    }
+
     public function testParseKeepsLastTransactionWithoutClosingCaret(): void
     {
         $transactions = (new Parser("!Type:Bank\nD25/12/2023\nT-100.00\n^\nD26/12/2023\nT-200.00\nSFee\n$-200.00\n", "\n"))->parse();
@@ -511,6 +519,39 @@ QIF;
         $this->expectExceptionMessage('"12 EUR" is not an amount.');
 
         (new Parser("!Type:Bank\nT12 EUR\n^", "\n"))->parse();
+    }
+
+    public function testParseAmountWithExponentThrows(): void
+    {
+        $this->expectException(ParseException::class);
+        $this->expectExceptionMessage('Line 2 (record index 0): "1e400" is not an amount.');
+
+        (new Parser("!Type:Bank\nT1e400\n^", "\n"))->parse();
+    }
+
+    public function testParseTooLargeAmountThrows(): void
+    {
+        $this->expectException(ParseException::class);
+        $this->expectExceptionMessage('is too large to be an amount.');
+
+        (new Parser("!Type:Bank\nT" . str_repeat('9', 400) . ",00\n^", "\n"))->parse();
+    }
+
+    public function testParseLineBreakInsideAFieldThrows(): void
+    {
+        // With "\n" as separator, a "\r" inside a line is not split on, but the writer would write it as a line break
+        $this->expectException(ParseException::class);
+        $this->expectExceptionMessage('Line 3 (record index 0): The payee "Coffee\r^" contains a line break: QIF fields are single lines.');
+
+        (new Parser("!Type:Bank\nT10\nPCoffee\r^\n^", "\n"))->parse();
+    }
+
+    public function testParseLineBreakInsideASplitIsOnItsSLine(): void
+    {
+        $this->expectException(ParseException::class);
+        $this->expectExceptionMessage('Line 3 (record index 0): The split memo "Coffee\r^" contains a line break: QIF fields are single lines.');
+
+        (new Parser("!Type:Bank\nT10\nSFood\n$10\nECoffee\r^\n^", "\n"))->parse();
     }
 
     public function testParseEmptyAmountAndDateAreNull(): void
