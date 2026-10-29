@@ -5,7 +5,7 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [4.1.0] - Unreleased
+## [4.1.0] - 2026-10-29
 
 ### Changed
 
@@ -99,7 +99,7 @@ First release as `silarhi/qif-library`, a fork of the unmaintained `mimographix/
 - **BC break:** `nesbot/carbon` is no longer a dependency: `Transaction::setDate()` takes and `getDate()` returns a `DateTimeImmutable`.
 - `Parser::parseFile()` throws a `RuntimeException` when the file is missing or unreadable, and `Writer::saveToFile()` when the file cannot be written, instead of a PHP warning or `die()`.
 
-[4.1.0]: https://github.com/silarhi/qif-library/compare/4.0.0...main
+[4.1.0]: https://github.com/silarhi/qif-library/compare/4.0.0...4.1.0
 [4.0.0]: https://github.com/silarhi/qif-library/compare/3.0.0...4.0.0
 [3.0.0]: https://github.com/silarhi/qif-library/compare/2.0.0...3.0.0
 [2.0.0]: https://github.com/silarhi/qif-library/compare/1.0.0...2.0.0
