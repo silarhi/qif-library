@@ -29,6 +29,7 @@ use Silarhi\Qif\Transaction;
 
 #[CoversClass(Parser::class)]
 #[CoversClass(DateFormat::class)]
+#[CoversClass(ParseException::class)]
 final class ParserTest extends TestCase
 {
     public function testParseSimpleTransaction(): void
@@ -235,6 +236,47 @@ QIF;
         $this->expectExceptionMessage('File not found or not readable:');
 
         Parser::parseFile('/non/existent/file.qif');
+    }
+
+    public function testParseFileThrowsExceptionWhenAReadablePathCannotBeRead(): void
+    {
+        // A stream that reports itself readable but fails to open, like a remote file that went away
+        $wrapper = new class {
+            /** @var resource|null */
+            public $context;
+
+            /**
+             * @return array{mode: int}
+             */
+            public function url_stat(string $path, int $flags): array
+            {
+                return ['mode' => 0o100444];
+            }
+
+            public function stream_open(string $path, string $mode, int $options, ?string &$openedPath): bool
+            {
+                return false;
+            }
+        };
+        stream_wrapper_register('qif-unreadable', $wrapper::class);
+        $warnings = [];
+        set_error_handler(static function (int $level, string $message) use (&$warnings): bool {
+            $warnings[] = $message;
+
+            return true;
+        }, \E_WARNING);
+
+        try {
+            Parser::parseFile('qif-unreadable://sample.qif');
+            self::fail('A RuntimeException should be thrown.');
+        } catch (RuntimeException $e) {
+            self::assertSame('Failed to read file: qif-unreadable://sample.qif', $e->getMessage());
+            self::assertCount(1, $warnings);
+            self::assertStringContainsString('Failed to open stream', $warnings[0]);
+        } finally {
+            restore_error_handler();
+            stream_wrapper_unregister('qif-unreadable');
+        }
     }
 
     public function testParseWithBOMRemoval(): void
