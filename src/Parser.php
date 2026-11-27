@@ -94,10 +94,7 @@ class Parser
      */
     public function parse(): array
     {
-        $content = preg_replace("/\xEF\xBB\xBF/", '', $this->fileContent);
-        if (null === $content) {
-            throw new RuntimeException('Failed to clean file content');
-        }
+        $content = str_replace("\xEF\xBB\xBF", '', $this->fileContent);
 
         $this->transactions = [];
         $type = null;
